@@ -293,9 +293,6 @@ app.get("/api/familias", (req, res) => {
   }
 });
 
-// GET uma família com membros e visitas
-app.get("/api/familias/:id", (req, res) => {
-
 // Busca de famílias por nome de membro (para o search dropdown)
 app.get("/api/buscar-membros", (req, res) => {
   const { q } = req.query;
@@ -317,6 +314,7 @@ app.get("/api/buscar-membros", (req, res) => {
   }
 });
 
+// GET uma família com membros e visitas
 app.get("/api/familias/:id", (req, res) => {
   try {
     const familia = db

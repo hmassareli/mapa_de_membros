@@ -1029,13 +1029,17 @@ function showSearchDropdown(query) {
       const nome = (f.nome_familia || "").toLowerCase();
       const end = (f.endereco_linha1 || "").toLowerCase();
       const endCompleto = (f.endereco_completo || "").toLowerCase();
-      return nome.includes(lower) || end.includes(lower) || endCompleto.includes(lower);
+      return (
+        nome.includes(lower) ||
+        end.includes(lower) ||
+        endCompleto.includes(lower)
+      );
     })
     .slice(0, 6);
 
   // Busca membros no servidor (async)
   renderSearchResults(dropdown, query, matches, []);
-  
+
   fetch(`${API}/api/buscar-membros?q=${encodeURIComponent(query)}`)
     .then((r) => r.json())
     .then((membros) => {
@@ -1050,7 +1054,6 @@ function showSearchDropdown(query) {
 }
 
 function renderSearchResults(dropdown, query, matches, membros) {
-
   let html = "";
 
   // Seção 1: Famílias
