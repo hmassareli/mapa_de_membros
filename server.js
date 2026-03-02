@@ -243,6 +243,25 @@ app.get("/api/familias-sem-coordenadas", (req, res) => {
 });
 
 // ========================
+// FAMÍLIAS PENDENTES DE REFINAMENTO NOMINATIM
+// (coordenadas vieram do CEP, precisam ser refinadas)
+// ========================
+
+app.get("/api/familias-pendentes-refinamento", (req, res) => {
+  try {
+    const familias = db
+      .prepare(
+        `SELECT id, nome_familia, endereco_linha1, endereco_linha2, endereco_linha3, endereco_completo 
+       FROM familias WHERE geocode_fonte = 'cep' AND endereco_completo != ''`,
+      )
+      .all();
+    res.json(familias);
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// ========================
 // FAMÍLIAS (Households)
 // ========================
 
@@ -358,6 +377,7 @@ app.put("/api/familias/:id", (req, res) => {
     observacoes,
     latitude,
     longitude,
+    geocode_fonte,
   } = req.body;
 
   try {
@@ -387,6 +407,10 @@ app.put("/api/familias/:id", (req, res) => {
     if (longitude !== undefined) {
       sets.push("longitude = ?");
       params.push(longitude);
+    }
+    if (geocode_fonte !== undefined) {
+      sets.push("geocode_fonte = ?");
+      params.push(geocode_fonte);
     }
 
     if (sets.length === 0) {
@@ -571,7 +595,7 @@ app.get("/api/estatisticas", (req, res) => {
 // ========================
 
 app.post("/api/geocodificar/:id", async (req, res) => {
-  const { latitude, longitude } = req.body;
+  const { latitude, longitude, geocode_fonte } = req.body;
 
   if (latitude === undefined || longitude === undefined) {
     return res
@@ -580,9 +604,10 @@ app.post("/api/geocodificar/:id", async (req, res) => {
   }
 
   try {
+    const fonte = geocode_fonte || 'manual';
     db.prepare(
-      "UPDATE familias SET latitude = ?, longitude = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?",
-    ).run(latitude, longitude, req.params.id);
+      "UPDATE familias SET latitude = ?, longitude = ?, geocode_fonte = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?",
+    ).run(latitude, longitude, fonte, req.params.id);
     res.json({ mensagem: "Coordenadas atualizadas" });
   } catch (err) {
     res.status(500).json({ erro: err.message });

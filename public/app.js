@@ -20,6 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
   checkImportNeeded();
   checkGeocodeRunning();
+  // Auto-iniciar refinamento Nominatim para famílias com coords de CEP
+  iniciarRefinamentoNominatim();
 });
 
 // Verifica resposta 401 e redireciona para login
@@ -128,6 +130,70 @@ async function iniciarGeocodeBg() {
 function checkGeocodeRunning() {
   // Geocodificação roda no navegador — se está rodando nesta aba, a barra já está visível
   if (GeocoderClient.isRunning()) return;
+}
+
+// ================================
+// REFINAMENTO NOMINATIM (BACKGROUND)
+// Busca famílias com geocode_fonte='cep' e refina com Nominatim.
+// Continua de onde parou entre sessões do navegador.
+// ================================
+
+async function iniciarRefinamentoNominatim() {
+  // Esperar um pouco para não competir com o carregamento inicial
+  await new Promise((r) => setTimeout(r, 3000));
+
+  // Não iniciar se já tem geocodificação rodando
+  if (GeocoderClient.isRunning()) return;
+
+  try {
+    const res = await fetch(`${API}/api/familias-pendentes-refinamento`);
+    if (!checkAuth(res)) return;
+    const familias = await res.json();
+    if (!familias.length) return;
+
+    console.log(`🔄 Refinamento Nominatim: ${familias.length} famílias pendentes`);
+    showRefinamentoProgressBar(familias.length);
+
+    GeocoderClient.setOnProgress((p) => {
+      const pct = p.total > 0 ? Math.round((p.current / p.total) * 100) : 0;
+      const bgBar = document.getElementById("refinamentoBgBar");
+      const bgText = document.getElementById("refinamentoBgText");
+      if (bgBar) bgBar.style.width = pct + "%";
+      if (bgText)
+        bgText.textContent = `${p.current}/${p.total} (✅${p.sucesso} ❌${p.falha})`;
+    });
+
+    GeocoderClient.setOnComplete((p) => {
+      showToast(
+        `Refinamento concluído: ${p.sucesso} melhorados, ${p.falha} sem resultado`,
+        "success",
+      );
+      document.getElementById("refinamentoProgressBar")?.remove();
+      loadFamilias(getCurrentFilters());
+    });
+
+    GeocoderClient.refinar(familias, API);
+  } catch (err) {
+    console.error("Erro ao iniciar refinamento:", err);
+  }
+}
+
+function showRefinamentoProgressBar(total) {
+  if (document.getElementById("refinamentoProgressBar")) return;
+  if (document.getElementById("geocodeProgressBar")) return; // não mostrar se geocode está rodando
+  const bar = document.createElement("div");
+  bar.id = "refinamentoProgressBar";
+  bar.style.cssText =
+    "position:fixed;bottom:0;left:0;right:0;background:#1e293b;color:white;padding:8px 20px;z-index:9999;font-family:Inter,sans-serif;font-size:13px;display:flex;align-items:center;gap:12px;";
+  bar.innerHTML = `
+    <span>🔄 Refinando coordenadas via Nominatim...</span>
+    <div style="flex:1;background:#334155;border-radius:4px;height:8px;overflow:hidden;">
+      <div id="refinamentoBgBar" style="width:0%;height:100%;background:#10b981;transition:width 0.3s;border-radius:4px;"></div>
+    </div>
+    <span id="refinamentoBgText" style="min-width:100px;text-align:right;">0/${total}</span>
+    <button onclick="GeocoderClient.cancelar(); this.parentElement.remove();" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:16px;">✕</button>
+  `;
+  document.body.appendChild(bar);
 }
 
 function showGeocodeProgressBar(total) {

@@ -92,6 +92,22 @@ db.exec(`
 `);
 
 // ========================
+// MIGRAÇÃO: adicionar coluna geocode_fonte
+// ========================
+try {
+  const cols = db.pragma("table_info(familias)");
+  const temFonte = cols.some((c) => c.name === "geocode_fonte");
+  if (!temFonte) {
+    db.exec(`ALTER TABLE familias ADD COLUMN geocode_fonte TEXT DEFAULT NULL`);
+    // Marcar coordenadas existentes como 'cep' (presumido) para que sejam refinadas
+    db.exec(`UPDATE familias SET geocode_fonte = 'cep' WHERE latitude IS NOT NULL AND geocode_fonte IS NULL`);
+    console.log("Migração: coluna geocode_fonte adicionada.");
+  }
+} catch (e) {
+  // Coluna já existe ou tabela nova
+}
+
+// ========================
 // MIGRAÇÃO: adicionar 'inativo' e 'nao_contatado' ao status existente
 // SQLite não suporta ALTER CHECK, então recriamos a constraint via tabela nova
 // Mas como usamos CHECK inline, basta garantir que os dados são compatíveis.
