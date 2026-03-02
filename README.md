@@ -28,6 +28,7 @@ node importar.js
 ```
 
 O script vai:
+
 - Ler o arquivo `members.json`
 - Agrupar membros por família (household)
 - Inserir no banco de dados SQLite
@@ -51,13 +52,13 @@ Acesse: **http://localhost:3000**
 
 ## Cores dos Marcadores
 
-| Cor | Significado |
-|-----|------------|
-| 🟢 Verde | Ativo - Aceita Visitas |
-| 🔵 Azul | Ativo - Não Contatado |
+| Cor        | Significado                |
+| ---------- | -------------------------- |
+| 🟢 Verde   | Ativo - Aceita Visitas     |
+| 🔵 Azul    | Ativo - Não Contatado      |
 | 🟡 Amarelo | Ativo - Não Aceita Visitas |
-| 🟣 Roxo | Mudou |
-| ⚫ Cinza | Desconhecido |
+| 🟣 Roxo    | Mudou                      |
+| ⚫ Cinza   | Desconhecido               |
 
 Marcadores com **animação pulsante** = visitado nos últimos 30 dias.
 
@@ -80,20 +81,21 @@ mapa_de_membros/
 
 ## API REST
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/familias` | Listar todas as famílias |
-| GET | `/api/familias/:id` | Detalhes de uma família |
-| PUT | `/api/familias/:id` | Atualizar status da família |
-| POST | `/api/visitas` | Registrar nova visita |
-| PUT | `/api/visitas/:id` | Atualizar visita |
-| DELETE | `/api/visitas/:id` | Remover visita |
-| GET | `/api/estatisticas` | Estatísticas gerais |
-| POST | `/api/geocodificar/:id` | Atualizar coordenadas |
+| Método | Rota                    | Descrição                   |
+| ------ | ----------------------- | --------------------------- |
+| GET    | `/api/familias`         | Listar todas as famílias    |
+| GET    | `/api/familias/:id`     | Detalhes de uma família     |
+| PUT    | `/api/familias/:id`     | Atualizar status da família |
+| POST   | `/api/visitas`          | Registrar nova visita       |
+| PUT    | `/api/visitas/:id`      | Atualizar visita            |
+| DELETE | `/api/visitas/:id`      | Remover visita              |
+| GET    | `/api/estatisticas`     | Estatísticas gerais         |
+| POST   | `/api/geocodificar/:id` | Atualizar coordenadas       |
 
 ## Coordenadas Manuais
 
 Para famílias que o geocodificador não encontrou:
+
 1. Abra o Google Maps
 2. Pesquise o endereço
 3. Clique com o botão direito no local correto

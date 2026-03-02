@@ -1,12 +1,12 @@
-const Database = require('better-sqlite3');
-const path = require('path');
+const Database = require("better-sqlite3");
+const path = require("path");
 
-const dbPath = process.env.DB_PATH || path.join(__dirname, 'membros.db');
+const dbPath = process.env.DB_PATH || path.join(__dirname, "membros.db");
 const db = new Database(dbPath);
 
 // Enable WAL mode for better performance
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+db.pragma("journal_mode = WAL");
+db.pragma("foreign_keys = ON");
 
 // Create tables
 db.exec(`
@@ -101,8 +101,8 @@ db.exec(`
 try {
   // Migrar famílias que tinham status 'ativo' e aceita_visitas 'sim' (valores padrão antigos)
   // para 'nao_contatado' - o usuário vai classificar manualmente
-  const info = db.pragma('table_info(familias)');
-  const statusCol = info.find(c => c.name === 'status');
+  const info = db.pragma("table_info(familias)");
+  const statusCol = info.find((c) => c.name === "status");
   // Se a tabela já existia com constraint antiga, recriamos
   if (statusCol) {
     // Verificar se precisamos migrar (se a constraint não inclui 'inativo')
@@ -112,7 +112,7 @@ try {
       // Se não deu erro, a constraint já aceita 'inativo' - tudo certo
     } catch (e) {
       // Constraint antiga - precisamos recriar a tabela
-      console.log('Migrando banco de dados para novo esquema de status...');
+      console.log("Migrando banco de dados para novo esquema de status...");
       db.exec(`
         ALTER TABLE familias RENAME TO familias_old;
         
@@ -147,7 +147,9 @@ try {
 
         DROP TABLE familias_old;
       `);
-      console.log('Migração concluída! Famílias resetadas para "não contatado".');
+      console.log(
+        'Migração concluída! Famílias resetadas para "não contatado".',
+      );
     }
   }
 } catch (e) {

@@ -1,10 +1,10 @@
-const Database = require('better-sqlite3');
-const path = require('path');
+const Database = require("better-sqlite3");
+const path = require("path");
 
-const db = new Database(path.join(__dirname, 'membros.db'));
-db.pragma('foreign_keys = OFF');
+const db = new Database(path.join(__dirname, "membros.db"));
+db.pragma("foreign_keys = OFF");
 
-console.log('Migrando banco de dados...');
+console.log("Migrando banco de dados...");
 
 // Recreate familias table with new CHECK constraints
 db.exec(`
@@ -45,10 +45,14 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_familias_coords ON familias(latitude, longitude);
 `);
 
-db.pragma('foreign_keys = ON');
+db.pragma("foreign_keys = ON");
 
-const result = db.prepare('SELECT status, COUNT(*) as n FROM familias GROUP BY status').all();
-console.log('Status das famílias após migração:');
-result.forEach(r => console.log(`  ${r.status}: ${r.n}`));
-console.log('\n✅ Migração concluída! Todas as famílias estão como "Não Contatado".');
-console.log('   Agora você pode classificar cada uma pelo mapa.');
+const result = db
+  .prepare("SELECT status, COUNT(*) as n FROM familias GROUP BY status")
+  .all();
+console.log("Status das famílias após migração:");
+result.forEach((r) => console.log(`  ${r.status}: ${r.n}`));
+console.log(
+  '\n✅ Migração concluída! Todas as famílias estão como "Não Contatado".',
+);
+console.log("   Agora você pode classificar cada uma pelo mapa.");
