@@ -1023,14 +1023,33 @@ function showSearchDropdown(query) {
   const dropdown = document.getElementById("searchDropdown");
   const lower = query.toLowerCase();
 
-  // Filtra famílias localmente (nome ou endereço)
+  // Filtra famílias localmente (nome da família, ou endereço)
   const matches = familiasData
     .filter((f) => {
       const nome = (f.nome_familia || "").toLowerCase();
-      const end = (f.endereco || "").toLowerCase();
-      return nome.includes(lower) || end.includes(lower);
+      const end = (f.endereco_linha1 || "").toLowerCase();
+      const endCompleto = (f.endereco_completo || "").toLowerCase();
+      return nome.includes(lower) || end.includes(lower) || endCompleto.includes(lower);
     })
-    .slice(0, 8); // limitar a 8 resultados
+    .slice(0, 6);
+
+  // Busca membros no servidor (async)
+  renderSearchResults(dropdown, query, matches, []);
+  
+  fetch(`${API}/api/buscar-membros?q=${encodeURIComponent(query)}`)
+    .then((r) => r.json())
+    .then((membros) => {
+      // Remove membros cujas famílias já aparecem nos matches
+      const famIds = new Set(matches.map((f) => f.id));
+      const membrosFiltrados = membros.filter((m) => !famIds.has(m.familia_id));
+      if (membrosFiltrados.length > 0) {
+        renderSearchResults(dropdown, query, matches, membrosFiltrados);
+      }
+    })
+    .catch(() => {});
+}
+
+function renderSearchResults(dropdown, query, matches, membros) {
 
   let html = "";
 
@@ -1054,21 +1073,47 @@ function showSearchDropdown(query) {
       };
       const color = statusColors[f.status] || "#6b7280";
       const label = statusLabels[f.status] || f.status;
-      const hasCoords = f.lat && f.lng;
+      const hasCoords = f.latitude && f.longitude;
+      const endereco = f.endereco_linha1 || "Sem endereço";
 
       html += `
         <div class="search-item" data-action="familia" data-id="${f.id}">
           <div class="search-item-icon familia">👤</div>
           <div class="search-item-info">
             <div class="search-item-title">${highlightMatch(f.nome_familia, query)}</div>
-            <div class="search-item-sub">${highlightMatch(f.endereco || "Sem endereço", query)}${hasCoords ? "" : " 📍?"}</div>
+            <div class="search-item-sub">${highlightMatch(endereco, query)}${hasCoords ? "" : " 📍?"}</div>
           </div>
           <span class="search-item-badge" style="background:${color}20;color:${color}">${label}</span>
         </div>`;
     });
   }
 
-  // Seção 2: Ir para endereço no mapa
+  // Seção 2: Membros encontrados (busca no servidor)
+  if (membros.length > 0) {
+    html += '<div class="search-section-label">Membros encontrados</div>';
+    membros.forEach((m) => {
+      const statusColors = {
+        ativo: "#10b981",
+        inativo: "#ef4444",
+        nao_contatado: "#3b82f6",
+        mudou: "#8b5cf6",
+        desconhecido: "#6b7280",
+      };
+      const color = statusColors[m.status] || "#6b7280";
+      const hasCoords = m.latitude && m.longitude;
+
+      html += `
+        <div class="search-item" data-action="familia" data-id="${m.familia_id}">
+          <div class="search-item-icon familia">👥</div>
+          <div class="search-item-info">
+            <div class="search-item-title">${highlightMatch(m.nome_completo, query)}</div>
+            <div class="search-item-sub">Família ${m.nome_familia} — ${m.endereco_linha1 || "Sem endereço"}${hasCoords ? "" : " 📍?"}</div>
+          </div>
+        </div>`;
+    });
+  }
+
+  // Seção 3: Ir para endereço no mapa
   html += '<div class="search-section-label">Buscar no mapa</div>';
   html += `
     <div class="search-item" data-action="geocode">
@@ -1079,7 +1124,7 @@ function showSearchDropdown(query) {
       </div>
     </div>`;
 
-  if (matches.length === 0) {
+  if (matches.length === 0 && membros.length === 0) {
     html =
       '<div class="search-section-label">Buscar no mapa</div>' +
       `<div class="search-item" data-action="geocode">
@@ -1089,7 +1134,7 @@ function showSearchDropdown(query) {
           <div class="search-item-sub">Buscar endereço e dar zoom</div>
         </div>
       </div>
-      <div class="search-no-results">Nenhuma família encontrada para "${query}"</div>`;
+      <div class="search-no-results">Nenhum resultado para "${query}"</div>`;
   }
 
   dropdown.innerHTML = html;
@@ -1106,8 +1151,8 @@ function showSearchDropdown(query) {
         // Abre o painel lateral
         loadFamiliaDetalhe(id);
         // Zoom se tiver coordenadas
-        if (fam && fam.lat && fam.lng) {
-          map.flyTo([fam.lat, fam.lng], 18, { duration: 0.8 });
+        if (fam && fam.latitude && fam.longitude) {
+          map.flyTo([fam.latitude, fam.longitude], 18, { duration: 0.8 });
         }
       } else if (action === "geocode") {
         dropdown.classList.remove("visible");

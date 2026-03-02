@@ -295,6 +295,29 @@ app.get("/api/familias", (req, res) => {
 
 // GET uma família com membros e visitas
 app.get("/api/familias/:id", (req, res) => {
+
+// Busca de famílias por nome de membro (para o search dropdown)
+app.get("/api/buscar-membros", (req, res) => {
+  const { q } = req.query;
+  if (!q || q.length < 2) return res.json([]);
+
+  try {
+    const membros = db
+      .prepare(
+        `SELECT m.nome_completo, m.primeiro_nome, m.familia_id, f.nome_familia, f.endereco_linha1, f.latitude, f.longitude, f.status
+       FROM membros m
+       JOIN familias f ON f.id = m.familia_id
+       WHERE m.nome_completo LIKE ? OR m.primeiro_nome LIKE ?
+       LIMIT 10`,
+      )
+      .all(`%${q}%`, `%${q}%`);
+    res.json(membros);
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+app.get("/api/familias/:id", (req, res) => {
   try {
     const familia = db
       .prepare(
