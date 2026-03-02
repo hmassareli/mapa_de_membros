@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa de Membros - Configuração Inicial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .setup-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 520px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .setup-header {
+      background: linear-gradient(135deg, #1e3a5f, #3b82f6);
+      padding: 32px;
+      text-align: center;
+      color: white;
+    }
+    .setup-header .logo { font-size: 48px; margin-bottom: 8px; }
+    .setup-header h1 { font-size: 22px; font-weight: 600; }
+    .setup-header p { font-size: 13px; opacity: 0.85; margin-top: 6px; }
+
+    .setup-body { padding: 32px; }
+
+    .step { display: none; }
+    .step.active { display: block; }
+
+    .step-indicator {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .step-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      transition: background 0.3s;
+    }
+    .step-dot.active { background: #3b82f6; }
+    .step-dot.done { background: #10b981; }
+
+    h2 { font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 4px; }
+    .step-desc { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+      margin-bottom: 5px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+
+    .upload-area {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 16px;
+    }
+    .upload-area:hover, .upload-area.dragover {
+      border-color: #3b82f6;
+      background: #f0f7ff;
+    }
+    .upload-area.has-file {
+      border-color: #10b981;
+      background: #f0fdf4;
+    }
+    .upload-area .icon { font-size: 36px; margin-bottom: 8px; }
+    .upload-area .text { font-size: 14px; color: #64748b; }
+    .upload-area .filename {
+      font-size: 13px;
+      color: #10b981;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+    .upload-area input[type="file"] { display: none; }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 24px; }
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    .error-msg {
+      background: #fef2f2;
+      color: #dc2626;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .error-msg.visible { display: block; }
+
+    .success-box {
+      text-align: center;
+      padding: 20px 0;
+    }
+    .success-box .icon { font-size: 48px; margin-bottom: 12px; }
+    .success-box .count { font-size: 28px; font-weight: 700; color: #10b981; }
+    .success-box .detail { font-size: 14px; color: #64748b; margin-top: 4px; }
+
+    .skip-link {
+      text-align: center;
+      margin-top: 12px;
+    }
+    .skip-link a {
+      font-size: 12px;
+      color: #94a3b8;
+      text-decoration: none;
+    }
+    .skip-link a:hover {
+      color: #3b82f6;
+      text-decoration: underline;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .geocode-progress { margin-top: 20px; }
+    .progress-bar-container {
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      border-radius: 6px;
+      transition: width 0.5s ease;
+    }
+    .progress-stats {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+    .progress-detail {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .prog-ok { color: #10b981; }
+    .prog-fail { color: #ef4444; }
+    .progress-last {
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="setup-card">
+    <div class="setup-header">
+      <div class="logo">🗺️</div>
+      <h1>Mapa de Membros</h1>
+      <p>Configure sua ala para começar</p>
+    </div>
+
+    <div class="setup-body">
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot1"></div>
+        <div class="step-dot" id="dot2"></div>
+        <div class="step-dot" id="dot3"></div>
+        <div class="step-dot" id="dot4"></div>
+      </div>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <!-- STEP 1: Criar conta -->
+      <div class="step active" id="step1">
+        <h2>1. Crie o acesso da ala</h2>
+        <p class="step-desc">Este login será usado por todos que precisarem acessar o mapa.</p>
+
+        <div class="form-group">
+          <label>Nome da Ala</label>
+          <input type="text" id="inputAla" placeholder="Ex: Ala Parque Industrial" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Login</label>
+          <input type="text" id="inputUsername" placeholder="Ex: parqueindustrial" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="inputSenha" placeholder="Crie uma senha para a ala">
+        </div>
+        <div class="form-group">
+          <label>Confirmar Senha</label>
+          <input type="password" id="inputSenha2" placeholder="Repita a senha">
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="criarConta()">Próximo →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Upload JSON -->
+      <div class="step" id="step2">
+        <h2>2. Importe o diretório</h2>
+        <p class="step-desc">Faça upload do arquivo <strong>members.json</strong> exportado do diretório da Igreja.</p>
+
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+          <div class="icon" id="uploadIcon">📁</div>
+          <div class="text" id="uploadText">Clique ou arraste o arquivo JSON aqui</div>
+          <div class="filename" id="uploadFilename"></div>
+          <input type="file" id="fileInput" accept=".json">
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(1)">← Voltar</button>
+          <button class="btn btn-primary" id="btnImportar" onclick="importarDados()" disabled>Importar Dados</button>
+        </div>
+
+        <div class="skip-link">
+          <a href="#" onclick="pularImportacao()">Pular por agora (importar depois)</a>
+        </div>
+      </div>
+
+      <!-- STEP 3: Geocodificação automática -->
+      <div class="step" id="step3">
+        <h2>3. Localizando endereços no mapa</h2>
+        <p class="step-desc">Buscando coordenadas de cada família... Isso leva alguns minutos.</p>
+
+        <div class="geocode-progress">
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="geocodeBar" style="width:0%"></div>
+          </div>
+          <div class="progress-stats">
+            <span id="geocodeCurrent">0</span> / <span id="geocodeTotal">0</span> endereços
+          </div>
+          <div class="progress-detail">
+            <span class="prog-ok">✅ <span id="geocodeSucesso">0</span></span>
+            <span class="prog-fail">❌ <span id="geocodeFalha">0</span></span>
+          </div>
+          <div class="progress-last" id="geocodeLast">Iniciando...</div>
+        </div>
+
+        <div class="btn-row" style="margin-top:16px">
+          <button class="btn btn-secondary" id="btnSkipGeocode" onclick="pularGeocode()">Pular (fazer depois)</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Sucesso -->
+      <div class="step" id="step4">
+        <div class="success-box">
+          <div class="icon">✅</div>
+          <div class="count" id="resultCount">-</div>
+          <div class="detail" id="resultDetail">famílias e membros importados</div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="window.location.href='/'">Abrir o Mapa 🗺️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let jsonData = null;
+
+    // Drag & drop
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) handleFile(fileInput.files[0]);
+    });
+
+    function handleFile(file) {
+      if (!file.name.endsWith('.json')) {
+        showError('Por favor, selecione um arquivo .json');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          jsonData = JSON.parse(e.target.result);
+          if (!Array.isArray(jsonData)) {
+            showError('O arquivo JSON deve conter um array de membros');
+            jsonData = null;
+            return;
+          }
+
+          uploadArea.classList.add('has-file');
+          document.getElementById('uploadIcon').textContent = '✅';
+          document.getElementById('uploadText').textContent = 'Arquivo carregado!';
+          document.getElementById('uploadFilename').textContent = `${file.name} (${jsonData.length} registros)`;
+          document.getElementById('btnImportar').disabled = false;
+          hideError();
+        } catch (err) {
+          showError('Erro ao ler o arquivo JSON: ' + err.message);
+          jsonData = null;
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    async function criarConta() {
+      const ala = document.getElementById('inputAla').value.trim();
+      const username = document.getElementById('inputUsername').value.trim();
+      const senha = document.getElementById('inputSenha').value;
+      const senha2 = document.getElementById('inputSenha2').value;
+
+      if (!username || !senha) {
+        showError('Preencha login e senha');
+        return;
+      }
+      if (senha.length < 4) {
+        showError('A senha deve ter pelo menos 4 caracteres');
+        return;
+      }
+      if (senha !== senha2) {
+        showError('As senhas não coincidem');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, senha, nome: username, ala })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showError(data.erro || 'Erro ao criar conta');
+          return;
+        }
+        hideError();
+        goStep(2);
+      } catch (err) {
+        showError('Erro de conexão: ' + err.message);
+      }
+    }
+
+    async function importarDados() {
+      if (!jsonData) return;
+
+      const btn = document.getElementById('btnImportar');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Importando...';
+
+      try {
+        const res = await fetch('/api/importar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dados: jsonData })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showError(data.erro || 'Erro ao importar');
+          btn.disabled = false;
+          btn.textContent = 'Importar Dados';
+          return;
+        }
+
+        document.getElementById('resultCount').textContent = `${data.familias} famílias, ${data.membros} membros`;
+        document.getElementById('resultDetail').textContent = 'importados com sucesso!';
+        // Iniciar geocodificação automática
+        goStep(3);
+        iniciarGeocode();
+      } catch (err) {
+        showError('Erro de conexão: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Importar Dados';
+      }
+    }
+
+    function pularImportacao() {
+      document.getElementById('resultCount').textContent = 'Pronto!';
+      document.getElementById('resultDetail').textContent = 'Você pode importar dados depois pelo menu.';
+      goStep(4);
+    }
+
+    function goStep(n) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById(`step${n}`).classList.add('active');
+
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById(`dot${i}`);
+        dot.classList.remove('active', 'done');
+        if (i < n) dot.classList.add('done');
+        if (i === n) dot.classList.add('active');
+      }
+      hideError();
+    }
+
+    // ========================
+    // GEOCODIFICAÇÃO
+    // ========================
+
+    let geocodeInterval = null;
+
+    async function iniciarGeocode() {
+      try {
+        const res = await fetch('/api/geocodificar-batch', { method: 'POST' });
+        const data = await res.json();
+        if (data.erro) {
+          // Se já está rodando ou não tem nada, pula
+          finalizarGeocode();
+          return;
+        }
+
+        document.getElementById('geocodeTotal').textContent = data.total;
+
+        // Polling a cada 2s
+        geocodeInterval = setInterval(atualizarProgresso, 2000);
+      } catch (err) {
+        finalizarGeocode();
+      }
+    }
+
+    async function atualizarProgresso() {
+      try {
+        const res = await fetch('/api/geocodificar-progresso');
+        const p = await res.json();
+
+        const pct = p.total > 0 ? Math.round((p.current / p.total) * 100) : 0;
+        document.getElementById('geocodeBar').style.width = pct + '%';
+        document.getElementById('geocodeCurrent').textContent = p.current;
+        document.getElementById('geocodeTotal').textContent = p.total;
+        document.getElementById('geocodeSucesso').textContent = p.sucesso;
+        document.getElementById('geocodeFalha').textContent = p.falha;
+        document.getElementById('geocodeLast').textContent = p.ultimaFamilia
+          ? `${p.ultimaFamilia} — ${p.ultimaEstrategia}`
+          : 'Iniciando...';
+
+        if (p.concluido || !p.running) {
+          finalizarGeocode();
+        }
+      } catch (err) {}
+    }
+
+    function finalizarGeocode() {
+      if (geocodeInterval) clearInterval(geocodeInterval);
+      geocodeInterval = null;
+
+      // Ir para step final
+      document.getElementById('resultCount').textContent = '✅';
+      document.getElementById('resultDetail').textContent = 'Dados importados e endereços localizados!';
+      goStep(4);
+    }
+
+    function pularGeocode() {
+      if (geocodeInterval) clearInterval(geocodeInterval);
+      // Cancela no servidor
+      fetch('/api/geocodificar-cancelar', { method: 'POST' }).catch(() => {});
+      document.getElementById('resultCount').textContent = 'Pronto!';
+      document.getElementById('resultDetail').textContent = 'A geocodificação continuará em segundo plano.';
+      goStep(4);
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.classList.add('visible');
+    }
+    function hideError() {
+      document.getElementById('errorMsg').classList.remove('visible');
+    }
+
+    // Verificar se já foi configurado
+    fetch('/api/auth/status')
+      .then(r => r.json())
+      .then(d => {
+        if (d.configurado) window.location.href = '/login.html';
+      });
+  </script>
+</body>
+</html>
