@@ -29,7 +29,12 @@ export default function SidePanel({
   const [visitResultado, setVisitResultado] = useState("");
   const [visitNotas, setVisitNotas] = useState("");
 
-  if (!familia) return <div className={`fixed top-0 right-0 h-full w-105 max-w-full bg-white shadow-2xl z-1000 transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`} />;
+  if (!familia)
+    return (
+      <div
+        className={`fixed top-0 right-0 h-full w-105 max-w-full bg-white shadow-2xl z-1000 transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}
+      />
+    );
 
   const f = familia;
   const isAtivo = f.status === "ativo";
@@ -121,21 +126,35 @@ export default function SidePanel({
   }
 
   return (
-    <div className={`fixed top-0 right-0 h-full w-105 max-w-full bg-white shadow-2xl z-1000 transition-transform duration-300 overflow-y-auto custom-scrollbar ${open ? "translate-x-0" : "translate-x-full"}`}>
-      <button className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white text-lg cursor-pointer z-10" onClick={onClose}>
+    <div
+      className={`fixed top-0 right-0 h-full w-105 max-w-full bg-white shadow-2xl z-1000 transition-transform duration-300 overflow-y-auto custom-scrollbar ${open ? "translate-x-0" : "translate-x-full"}`}
+    >
+      <button
+        className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white text-lg cursor-pointer z-10"
+        onClick={onClose}
+      >
         &times;
       </button>
 
       {/* Header */}
-      <div className="p-5 border-b border-primary" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}>
-        <h2 className="text-lg font-bold text-white mb-2">Família {f.nome_familia}</h2>
+      <div
+        className="p-5 border-b border-primary"
+        style={{
+          background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)",
+        }}
+      >
+        <h2 className="text-lg font-bold text-white mb-2">
+          Família {f.nome_familia}
+        </h2>
         <div
           className="text-sm text-blue-100 leading-relaxed cursor-pointer hover:bg-blue-500/30 rounded-lg p-2 -m-2 transition"
           onClick={() => setShowAddressModal(true)}
           title="Clique para editar endereço"
         >
           {f.endereco_editado ? (
-            <span className="inline-block bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded font-medium mr-1">✏️ Editado</span>
+            <span className="inline-block bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded font-medium mr-1">
+              ✏️ Editado
+            </span>
           ) : null}
           {f.endereco_linha1 || ""}
           <br />
@@ -145,7 +164,9 @@ export default function SidePanel({
           <span className="ml-1">✏️</span>
         </div>
         <div className="flex gap-2 items-center mt-2">
-          <span className="text-xs bg-blue-400/30 text-white px-2 py-0.5 rounded-full font-medium">{f.ala || "Sem ala"}</span>
+          <span className="text-xs bg-blue-400/30 text-white px-2 py-0.5 rounded-full font-medium">
+            {f.ala || "Sem ala"}
+          </span>
           {modified && (
             <span
               className="text-xs bg-amber-300/30 text-amber-100 px-2 py-0.5 rounded-full font-medium"
@@ -162,7 +183,9 @@ export default function SidePanel({
         <h3 className="font-semibold text-gray-700 text-sm mb-3">📋 Status</h3>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500 w-24 shrink-0">Situação:</label>
+            <label className="text-xs text-gray-500 w-24 shrink-0">
+              Situação:
+            </label>
             <select
               value={f.status}
               onChange={(e) => onStatusChange(e.target.value)}
@@ -177,7 +200,9 @@ export default function SidePanel({
           </div>
           {!isAtivo && (
             <div className="flex items-center gap-2">
-              <label className="text-xs text-gray-500 w-24 shrink-0">Aceita Visitas:</label>
+              <label className="text-xs text-gray-500 w-24 shrink-0">
+                Aceita Visitas:
+              </label>
               <select
                 value={f.aceita_visitas}
                 onChange={(e) => updateField("aceita_visitas", e.target.value)}
@@ -191,7 +216,9 @@ export default function SidePanel({
           )}
           {isInativo && (
             <div className="flex items-center gap-2">
-              <label className="text-xs text-gray-500 w-24 shrink-0">Interesse em Retornar:</label>
+              <label className="text-xs text-gray-500 w-24 shrink-0">
+                Interesse em Retornar:
+              </label>
               <select
                 value={f.interesse_retorno}
                 onChange={(e) =>
@@ -211,7 +238,9 @@ export default function SidePanel({
         {/* Coordinates */}
         {!f.latitude || !f.longitude ? (
           <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
-            <p className="text-xs text-amber-700 mb-2">⚠️ Sem coordenadas. Cole do Google Maps ou use 📍:</p>
+            <p className="text-xs text-amber-700 mb-2">
+              ⚠️ Sem coordenadas. Cole do Google Maps ou use 📍:
+            </p>
             <div className="flex gap-2">
               <input
                 value={coordInput}
@@ -256,7 +285,9 @@ export default function SidePanel({
 
       {/* Members */}
       <div className="p-5 border-b border-gray-100">
-        <h3 className="font-semibold text-gray-700 text-sm mb-3">👥 Membros da Família ({f.membros?.length || 0})</h3>
+        <h3 className="font-semibold text-gray-700 text-sm mb-3">
+          👥 Membros da Família ({f.membros?.length || 0})
+        </h3>
         {(f.membros || []).map((m) => {
           const isMale = m.sexo === "M";
           const initials = (m.primeiro_nome || "?")[0].toUpperCase();
@@ -272,12 +303,18 @@ export default function SidePanel({
 
           return (
             <div key={m.id} className="flex items-start gap-3 mb-3">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 ${isMale ? "bg-blue-500" : "bg-pink-500"}`}>{initials}</div>
+              <div
+                className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 ${isMale ? "bg-blue-500" : "bg-pink-500"}`}
+              >
+                {initials}
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-gray-800">
                   {m.primeiro_nome} {m.sobrenome}
                 </div>
-                <div className="text-xs text-gray-400">{detalhes.join(" • ")}</div>
+                <div className="text-xs text-gray-400">
+                  {detalhes.join(" • ")}
+                </div>
                 {(m.telefone || m.email) && (
                   <div className="mt-1 flex gap-2 flex-wrap">
                     {tel && (
@@ -291,7 +328,10 @@ export default function SidePanel({
                       </a>
                     )}{" "}
                     {m.email && (
-                      <a href={`mailto:${m.email}`} className="text-xs text-blue-600 hover:underline">
+                      <a
+                        href={`mailto:${m.email}`}
+                        className="text-xs text-blue-600 hover:underline"
+                      >
                         📧 {m.email}
                       </a>
                     )}
@@ -305,7 +345,9 @@ export default function SidePanel({
 
       {/* New Visit */}
       <div className="p-5 border-b border-gray-100">
-        <h3 className="font-semibold text-gray-700 text-sm mb-3">➕ Registrar Nova Visita</h3>
+        <h3 className="font-semibold text-gray-700 text-sm mb-3">
+          ➕ Registrar Nova Visita
+        </h3>
         <div className="space-y-2">
           <div className="flex gap-2">
             <input
@@ -351,7 +393,10 @@ export default function SidePanel({
             placeholder="Notas sobre a visita..."
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y min-h-15"
           />
-          <button className="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition cursor-pointer" onClick={addVisita}>
+          <button
+            className="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition cursor-pointer"
+            onClick={addVisita}
+          >
             Registrar Visita
           </button>
         </div>
@@ -359,7 +404,9 @@ export default function SidePanel({
 
       {/* Visit History */}
       <div className="p-5 border-b border-gray-100">
-        <h3 className="font-semibold text-gray-700 text-sm mb-3">📒 Histórico de Visitas ({f.total_visitas || 0})</h3>
+        <h3 className="font-semibold text-gray-700 text-sm mb-3">
+          📒 Histórico de Visitas ({f.total_visitas || 0})
+        </h3>
         {(f.visitas || []).length === 0 ? (
           <p className="text-gray-400 text-[13px] italic">
             Nenhuma visita registrada ainda.
@@ -380,14 +427,18 @@ export default function SidePanel({
                   {TIPO_LABELS[v.tipo] || v.tipo}
                 </span>
                 {v.resultado && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${v.resultado === "atendeu" ? "bg-green-100 text-green-700" : v.resultado === "recusou" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"}`}>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${v.resultado === "atendeu" ? "bg-green-100 text-green-700" : v.resultado === "recusou" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"}`}
+                  >
                     {RESULTADO_LABELS[v.resultado] || v.resultado}
                   </span>
                 )}
               </div>
               <div className="text-xs text-gray-500 mt-1">👤 {v.visitante}</div>
               {v.notas && (
-                <div className="text-xs text-gray-400 mt-1 italic">&quot;{v.notas}&quot;</div>
+                <div className="text-xs text-gray-400 mt-1 italic">
+                  &quot;{v.notas}&quot;
+                </div>
               )}
             </div>
           ))
@@ -396,7 +447,9 @@ export default function SidePanel({
 
       {/* Notes */}
       <div className="p-5">
-        <h3 className="font-semibold text-gray-700 text-sm mb-3">📝 Observações</h3>
+        <h3 className="font-semibold text-gray-700 text-sm mb-3">
+          📝 Observações
+        </h3>
         <textarea
           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y min-h-20"
           defaultValue={f.observacoes || ""}

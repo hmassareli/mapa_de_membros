@@ -26,11 +26,16 @@ export default function HouseholdCard({ familia, onSelect }) {
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={onSelect}>
+    <div
+      className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:shadow-md transition-shadow"
+      onClick={onSelect}
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 min-w-0">
-          <h4 className="text-sm font-bold text-gray-800 truncate">Família {f.nome_familia}</h4>
+          <h4 className="text-sm font-bold text-gray-800 truncate">
+            Família {f.nome_familia}
+          </h4>
           <span
             className="text-[10px] px-2 py-0.5 rounded-full font-medium border whitespace-nowrap"
             style={{
@@ -58,7 +63,9 @@ export default function HouseholdCard({ familia, onSelect }) {
       {/* Address */}
       <div className="text-xs text-gray-500 mb-2 flex items-center gap-1 flex-wrap">
         {f.endereco_editado ? (
-          <span className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded font-medium">✏️ Editado</span>
+          <span className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded font-medium">
+            ✏️ Editado
+          </span>
         ) : null}
         {modified && !f.endereco_editado ? (
           <span
@@ -68,9 +75,7 @@ export default function HouseholdCard({ familia, onSelect }) {
             ✏️
           </span>
         ) : null}
-        <span className="truncate">
-          {f.endereco_linha1 || "Sem endereço"}
-        </span>
+        <span className="truncate">{f.endereco_linha1 || "Sem endereço"}</span>
         {f.endereco_linha2 && (
           <span className="text-gray-300 truncate">— {f.endereco_linha2}</span>
         )}
@@ -87,20 +92,28 @@ export default function HouseholdCard({ familia, onSelect }) {
               className="flex items-center gap-1"
               title={`${m.primeiro_nome} ${m.sobrenome} (${ROLE_LABELS[m.papel_familia] || m.papel_familia})`}
             >
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${isMale ? "bg-blue-500" : "bg-pink-500"}`}>
+              <span
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${isMale ? "bg-blue-500" : "bg-pink-500"}`}
+              >
                 {initial}
               </span>
-              <span className="text-[11px] text-gray-600">{m.primeiro_nome}</span>
+              <span className="text-[11px] text-gray-600">
+                {m.primeiro_nome}
+              </span>
             </div>
           );
         })}
         {membros.length > 6 && (
-          <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">+{membros.length - 6}</span>
+          <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
+            +{membros.length - 6}
+          </span>
         )}
       </div>
 
       {/* Visit info / status details */}
-      <div className={`overflow-hidden transition-all duration-300 ${showActions ? "max-h-96" : "max-h-0 md:max-h-96"}`}>
+      <div
+        className={`overflow-hidden transition-all duration-300 ${showActions ? "max-h-96" : "max-h-0 md:max-h-96"}`}
+      >
         <div className="flex items-center gap-2 text-xs text-gray-400 pt-2 border-t border-gray-50">
           {f.total_visitas > 0 ? (
             <>
@@ -143,10 +156,15 @@ export default function HouseholdCard({ familia, onSelect }) {
             </span>
           )}
           {f.interesse_retorno && f.interesse_retorno !== "nao_contatado" && (
-            <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Interesse: {f.interesse_retorno}</span>
+            <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+              Interesse: {f.interesse_retorno}
+            </span>
           )}
           {f.observacoes && (
-            <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded" title={f.observacoes}>
+            <span
+              className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded"
+              title={f.observacoes}
+            >
               📝 Obs
             </span>
           )}

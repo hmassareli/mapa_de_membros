@@ -72,7 +72,9 @@ export default function ReportView({ familias, filters, onSelectFamily }) {
   return (
     <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h3 className="text-lg font-bold text-gray-800">📋 Relatório de Famílias ({filtered.length})</h3>
+        <h3 className="text-lg font-bold text-gray-800">
+          📋 Relatório de Famílias ({filtered.length})
+        </h3>
         <div className="flex items-center gap-3 flex-wrap">
           {totalEditadas > 0 && (
             <button
@@ -85,7 +87,11 @@ export default function ReportView({ familias, filters, onSelectFamily }) {
           )}
           <div className="flex items-center gap-1.5 text-sm">
             <label className="text-xs text-gray-500">Ordenar:</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-2 py-1 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-2 py-1 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            >
               <option value="nome">Nome</option>
               <option value="status">Status</option>
               <option value="visita">Última Visita</option>
@@ -95,7 +101,9 @@ export default function ReportView({ familias, filters, onSelectFamily }) {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Carregando relatório...</div>
+        <div className="text-center py-12 text-gray-400">
+          Carregando relatório...
+        </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
           Nenhuma família encontrada com os filtros aplicados.

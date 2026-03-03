@@ -106,44 +106,73 @@ export default function SyncPanel({
   return (
     <div className="absolute bottom-20 right-4 z-500 w-96 max-w-[calc(100vw-2rem)] max-h-[80vh] bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden flex flex-col">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <h4 className="font-semibold text-sm text-gray-700">⚙️ Sincronização e Dados</h4>
-        <button className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 text-sm cursor-pointer" onClick={onClose}>
+        <h4 className="font-semibold text-sm text-gray-700">
+          ⚙️ Sincronização e Dados
+        </h4>
+        <button
+          className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 text-sm cursor-pointer"
+          onClick={onClose}
+        >
           &times;
         </button>
       </div>
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5">
         {loading ? (
-          <p className="text-center text-gray-400 text-sm">
-            Carregando...
-          </p>
+          <p className="text-center text-gray-400 text-sm">Carregando...</p>
         ) : (
           <>
             <div>
-              <h5 className="font-semibold text-sm text-gray-700 mb-2">📍 Coordenadas</h5>
+              <h5 className="font-semibold text-sm text-gray-700 mb-2">
+                📍 Coordenadas
+              </h5>
               <div className="grid grid-cols-3 gap-2 mb-3">
                 <div className="text-center p-2 bg-gray-50 rounded-lg">
-                  <span className="block text-lg font-bold text-blue-600">{g?.totalNoMapa || 0}</span>
-                  <span className="block text-[10px] text-gray-400">no mapa</span>
+                  <span className="block text-lg font-bold text-blue-600">
+                    {g?.totalNoMapa || 0}
+                  </span>
+                  <span className="block text-[10px] text-gray-400">
+                    no mapa
+                  </span>
                 </div>
                 <div className="text-center p-2 bg-gray-50 rounded-lg">
-                  <span className="block text-lg font-bold text-red-500">{g?.totalSemCoord || 0}</span>
-                  <span className="block text-[10px] text-gray-400">sem coordenada</span>
+                  <span className="block text-lg font-bold text-red-500">
+                    {g?.totalSemCoord || 0}
+                  </span>
+                  <span className="block text-[10px] text-gray-400">
+                    sem coordenada
+                  </span>
                 </div>
                 <div className="text-center p-2 bg-gray-50 rounded-lg">
-                  <span className="block text-lg font-bold text-green-600">{g?.totalCep || 0}</span>
-                  <span className="block text-[10px] text-gray-400">via CEP</span>
+                  <span className="block text-lg font-bold text-green-600">
+                    {g?.totalCep || 0}
+                  </span>
+                  <span className="block text-[10px] text-gray-400">
+                    via CEP
+                  </span>
                 </div>
                 <div className="text-center p-2 bg-gray-50 rounded-lg">
-                  <span className="block text-lg font-bold text-indigo-600">{g?.totalNominatim || 0}</span>
-                  <span className="block text-[10px] text-gray-400">via Nominatim</span>
+                  <span className="block text-lg font-bold text-indigo-600">
+                    {g?.totalNominatim || 0}
+                  </span>
+                  <span className="block text-[10px] text-gray-400">
+                    via Nominatim
+                  </span>
                 </div>
                 <div className="text-center p-2 bg-gray-50 rounded-lg">
-                  <span className="block text-lg font-bold text-amber-600">{g?.totalManual || 0}</span>
-                  <span className="block text-[10px] text-gray-400">manual</span>
+                  <span className="block text-lg font-bold text-amber-600">
+                    {g?.totalManual || 0}
+                  </span>
+                  <span className="block text-[10px] text-gray-400">
+                    manual
+                  </span>
                 </div>
                 <div className="text-center p-2 bg-gray-50 rounded-lg">
-                  <span className="block text-lg font-bold text-gray-500">{g?.totalFalhou || 0}</span>
-                  <span className="block text-[10px] text-gray-400">Nominatim falhou</span>
+                  <span className="block text-lg font-bold text-gray-500">
+                    {g?.totalFalhou || 0}
+                  </span>
+                  <span className="block text-[10px] text-gray-400">
+                    Nominatim falhou
+                  </span>
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -176,17 +205,26 @@ export default function SyncPanel({
             </div>
 
             <div>
-              <h5 className="font-semibold text-sm text-gray-700 mb-2">📤 Atualizar Dados</h5>
+              <h5 className="font-semibold text-sm text-gray-700 mb-2">
+                📤 Atualizar Dados
+              </h5>
               <p className="text-xs text-gray-500 mb-2">
                 Envie um novo <strong>members.json</strong> para sincronizar.
                 Suas visitas, status e observações são mantidos.
               </p>
               <label className="block border-2 border-dashed border-gray-200 rounded-lg p-3 text-center text-xs text-gray-500 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition">
                 📁 Clique para enviar members.json
-                <input type="file" accept=".json" onChange={sincronizarJSON} className="hidden" />
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={sincronizarJSON}
+                  className="hidden"
+                />
               </label>
               {syncResult && (
-                <div className={`mt-2 p-2 rounded-lg text-xs ${syncResult.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                <div
+                  className={`mt-2 p-2 rounded-lg text-xs ${syncResult.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
+                >
                   {syncResult.type === "success" ? "✅" : "❌"}{" "}
                   {syncResult.message}
                 </div>
@@ -194,7 +232,9 @@ export default function SyncPanel({
             </div>
 
             <div>
-              <h5 className="font-semibold text-sm text-red-600 mb-2">⚠️ Zona de Perigo</h5>
+              <h5 className="font-semibold text-sm text-red-600 mb-2">
+                ⚠️ Zona de Perigo
+              </h5>
               <button
                 className="w-full px-3 py-1.5 border border-red-300 text-red-600 rounded-lg text-xs hover:bg-red-50 transition cursor-pointer"
                 onClick={resetarDados}

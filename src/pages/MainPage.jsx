@@ -238,7 +238,10 @@ export default function MainPage() {
       return;
     }
     try {
-      const result = await api.geocodificar(pinFamiliaId, { latitude: lat, longitude: lng });
+      const result = await api.geocodificar(pinFamiliaId, {
+        latitude: lat,
+        longitude: lng,
+      });
       if (result.erro) throw new Error(result.erro);
       const fam = familias.find((f) => f.id === parseInt(pinFamiliaId));
       showToast(
@@ -451,7 +454,7 @@ export default function MainPage() {
             <div
               className="h-full rounded-full transition-all duration-300"
               style={{
-                background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)',
+                background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)",
                 width: `${progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0}%`,
               }}
             />

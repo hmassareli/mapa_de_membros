@@ -137,7 +137,12 @@ export default function Toolbar({
   const { matches = [], membros = [] } = dropdownItems || {};
 
   return (
-    <div className="flex flex-wrap items-center gap-3 px-4 py-2 border-b border-primary z-10" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}>
+    <div
+      className="flex flex-wrap items-center gap-3 px-4 py-2 border-b border-primary z-10"
+      style={{
+        background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)",
+      }}
+    >
       <div className="relative flex-1 min-w-50" ref={dropdownRef}>
         <svg
           className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
@@ -163,7 +168,9 @@ export default function Toolbar({
           <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-200 max-h-80 overflow-y-auto z-50">
             {matches.length > 0 && (
               <>
-                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Famílias encontradas</div>
+                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
+                  Famílias encontradas
+                </div>
                 {matches.map((f, i) => {
                   const color = STATUS_COLORS[f.status] || "#6b7280";
                   const label = STATUS_LABELS_SHORT[f.status] || f.status;
@@ -176,7 +183,9 @@ export default function Toolbar({
                         setDropdownItems(null);
                       }}
                     >
-                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm shrink-0">👤</div>
+                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm shrink-0">
+                        👤
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div
                           className="text-sm font-medium text-gray-800 truncate"
@@ -208,7 +217,9 @@ export default function Toolbar({
             )}
             {membros.length > 0 && (
               <>
-                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Membros encontrados</div>
+                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
+                  Membros encontrados
+                </div>
                 {membros.map((m, i) => (
                   <div
                     key={m.familia_id + "-" + m.nome_completo}
@@ -218,7 +229,9 @@ export default function Toolbar({
                       setDropdownItems(null);
                     }}
                   >
-                    <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm shrink-0">👥</div>
+                    <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm shrink-0">
+                      👥
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div
                         className="text-sm font-medium text-gray-800 truncate"
@@ -235,7 +248,9 @@ export default function Toolbar({
                 ))}
               </>
             )}
-            <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Buscar no mapa</div>
+            <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
+              Buscar no mapa
+            </div>
             <div
               className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition hover:bg-blue-50 ${activeIdx === matches.length + membros.length ? "bg-blue-50" : ""}`}
               onClick={() => {
@@ -243,7 +258,9 @@ export default function Toolbar({
                 setDropdownItems(null);
               }}
             >
-              <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-sm shrink-0">🔍</div>
+              <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-sm shrink-0">
+                🔍
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-gray-800">
                   Ir para &quot;{query}&quot; no mapa

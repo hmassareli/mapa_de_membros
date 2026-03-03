@@ -151,12 +151,24 @@ export default function SetupPage() {
     : 0;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #e8eef5 0%, #d5deec 100%)' }}>
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: "linear-gradient(135deg, #e8eef5 0%, #d5deec 100%)",
+      }}
+    >
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
-        <div className="text-white p-8 text-center" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}>
+        <div
+          className="text-white p-8 text-center"
+          style={{
+            background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)",
+          }}
+        >
           <div className="text-4xl mb-2">🗺️</div>
           <h1 className="text-2xl font-bold mb-1">Mapa de Membros</h1>
-          <p className="text-blue-100 text-sm">Configure sua ala para começar</p>
+          <p className="text-blue-100 text-sm">
+            Configure sua ala para começar
+          </p>
         </div>
 
         <div className="p-8">
@@ -178,12 +190,16 @@ export default function SetupPage() {
           {/* STEP 1 */}
           {step === 1 && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-1">1. Crie o acesso da ala</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">
+                1. Crie o acesso da ala
+              </h2>
               <p className="text-gray-500 text-sm mb-4">
                 Este login será usado por todos que precisarem acessar o mapa.
               </p>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Ala</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nome da Ala
+                </label>
                 <input
                   value={ala}
                   onChange={(e) => setAla(e.target.value)}
@@ -192,7 +208,9 @@ export default function SetupPage() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Login</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Login
+                </label>
                 <input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -201,7 +219,9 @@ export default function SetupPage() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Senha
+                </label>
                 <input
                   type="password"
                   value={senha}
@@ -211,7 +231,9 @@ export default function SetupPage() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar Senha</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirmar Senha
+                </label>
                 <input
                   type="password"
                   value={senha2}
@@ -223,14 +245,22 @@ export default function SetupPage() {
               <div className="flex gap-3">
                 <button
                   className="flex-1 py-3 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)",
+                  }}
                   onClick={criarConta}
                 >
                   Próximo →
                 </button>
               </div>
               <div className="text-center pt-6 border-t border-gray-100 mt-6 text-sm text-gray-500">
-                <a href="/login" className="text-blue-600 hover:underline font-medium">Já tem conta? Faça login</a>
+                <a
+                  href="/login"
+                  className="text-blue-600 hover:underline font-medium"
+                >
+                  Já tem conta? Faça login
+                </a>
               </div>
             </div>
           )}
@@ -238,7 +268,9 @@ export default function SetupPage() {
           {/* STEP 2 */}
           {step === 2 && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-1">2. Importe o diretório</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">
+                2. Importe o diretório
+              </h2>
               <p className="text-gray-500 text-sm mb-4">
                 Faça upload do arquivo <strong>members.json</strong> exportado
                 do diretório da Igreja.
@@ -248,10 +280,16 @@ export default function SetupPage() {
                 onClick={() => fileRef.current?.click()}
                 onDragOver={(e) => {
                   e.preventDefault();
-                  e.currentTarget.classList.add("border-blue-400", "bg-blue-50");
+                  e.currentTarget.classList.add(
+                    "border-blue-400",
+                    "bg-blue-50",
+                  );
                 }}
                 onDragLeave={(e) => {
-                  e.currentTarget.classList.remove("border-blue-400", "bg-blue-50");
+                  e.currentTarget.classList.remove(
+                    "border-blue-400",
+                    "bg-blue-50",
+                  );
                 }}
                 onDrop={handleDrop}
               >
@@ -285,13 +323,17 @@ export default function SetupPage() {
                 </button>
                 <button
                   className="flex-1 py-3 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
-                  style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)",
+                  }}
                   onClick={importarDados}
                   disabled={!jsonData || importing}
                 >
                   {importing ? (
                     <>
-                      <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Importando...
+                      <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
+                      Importando...
                     </>
                   ) : (
                     "Importar Dados"
@@ -316,13 +358,22 @@ export default function SetupPage() {
           {/* STEP 3 */}
           {step === 3 && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-1">3. Localizando endereços no mapa</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">
+                3. Localizando endereços no mapa
+              </h2>
               <p className="text-gray-500 text-sm mb-4">
                 Buscando coordenadas de cada família...
               </p>
               <div className="space-y-3">
                 <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-300" style={{ width: `${pct}%`, background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }} />
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${pct}%`,
+                      background:
+                        "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)",
+                    }}
+                  />
                 </div>
                 <div className="text-sm text-gray-700 text-center font-medium">
                   {geocodeProgress?.current || 0} /{" "}
@@ -368,7 +419,10 @@ export default function SetupPage() {
               <div className="flex gap-3" style={{ marginTop: 24 }}>
                 <button
                   className="flex-1 py-3 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)",
+                  }}
                   onClick={() => navigate("/")}
                 >
                   Abrir o Mapa 🗺️

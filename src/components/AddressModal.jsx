@@ -169,11 +169,20 @@ export default function AddressModal({ familia, onClose, onSaved }) {
   const preview = buildAddressLines();
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-2000 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-[modalSlideIn_0.3s_ease]" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 bg-black/50 z-2000 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-[modalSlideIn_0.3s_ease]"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="font-bold text-gray-800">✏️ Editar Endereço</h3>
-          <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 text-xl cursor-pointer" onClick={onClose}>
+          <button
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 text-xl cursor-pointer"
+            onClick={onClose}
+          >
             &times;
           </button>
         </div>
@@ -181,7 +190,9 @@ export default function AddressModal({ familia, onClose, onSaved }) {
         <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
           {/* CEP first — auto-fills rest */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">CEP</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              CEP
+            </label>
             <div className="flex items-center gap-2">
               <input
                 ref={cepRef}
@@ -192,13 +203,17 @@ export default function AddressModal({ familia, onClose, onSaved }) {
                 maxLength={9}
                 className="w-40 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               />
-              {loadingCep && <span className="inline-block w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />}
+              {loadingCep && (
+                <span className="inline-block w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+              )}
             </div>
           </div>
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">Rua / Logradouro</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Rua / Logradouro
+              </label>
               <input
                 type="text"
                 value={rua}
@@ -208,7 +223,9 @@ export default function AddressModal({ familia, onClose, onSaved }) {
               />
             </div>
             <div className="w-20">
-              <label className="block text-xs font-medium text-gray-500 mb-1">Nº</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Nº
+              </label>
               <input
                 type="text"
                 value={numero}
@@ -221,7 +238,9 @@ export default function AddressModal({ familia, onClose, onSaved }) {
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">Bairro</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Bairro
+              </label>
               <input
                 type="text"
                 value={bairro}
@@ -231,7 +250,9 @@ export default function AddressModal({ familia, onClose, onSaved }) {
               />
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">Complemento</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Complemento
+              </label>
               <input
                 type="text"
                 value={complemento}
@@ -244,7 +265,9 @@ export default function AddressModal({ familia, onClose, onSaved }) {
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">Cidade</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Cidade
+              </label>
               <input
                 type="text"
                 value={cidade}
@@ -254,7 +277,9 @@ export default function AddressModal({ familia, onClose, onSaved }) {
               />
             </div>
             <div className="w-20">
-              <label className="block text-xs font-medium text-gray-500 mb-1">UF</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                UF
+              </label>
               <input
                 type="text"
                 value={estado}
@@ -268,17 +293,28 @@ export default function AddressModal({ familia, onClose, onSaved }) {
 
           {/* Preview */}
           <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-            <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Pré-visualização</span>
+            <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
+              Pré-visualização
+            </span>
             <div className="mt-1 text-sm text-gray-700 leading-relaxed">
-              <div>{preview.linha1 || <em className="text-gray-300">—</em>}</div>
-              <div>{preview.linha2 || <em className="text-gray-300">—</em>}</div>
-              <div>{preview.linha3 || <em className="text-gray-300">—</em>}</div>
+              <div>
+                {preview.linha1 || <em className="text-gray-300">—</em>}
+              </div>
+              <div>
+                {preview.linha2 || <em className="text-gray-300">—</em>}
+              </div>
+              <div>
+                {preview.linha3 || <em className="text-gray-300">—</em>}
+              </div>
             </div>
           </div>
         </div>
 
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
-          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition cursor-pointer" onClick={onClose}>
+          <button
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition cursor-pointer"
+            onClick={onClose}
+          >
             Cancelar
           </button>
           <button

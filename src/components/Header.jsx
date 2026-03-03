@@ -10,11 +10,18 @@ export default function Header({ stats, viewMode, onViewModeChange }) {
   }
 
   return (
-    <header className="flex items-center justify-between px-4 py-2 shadow-md z-10 flex-wrap gap-2 md:flex-nowrap" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}>
+    <header
+      className="flex items-center justify-between px-4 py-2 shadow-md z-10 flex-wrap gap-2 md:flex-nowrap"
+      style={{
+        background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)",
+      }}
+    >
       <div className="flex items-center gap-3">
         <div className="text-2xl">🗺️</div>
         <div>
-          <h1 className="text-lg font-bold text-white leading-tight">Mapa de Membros</h1>
+          <h1 className="text-lg font-bold text-white leading-tight">
+            Mapa de Membros
+          </h1>
           <span className="text-xs text-blue-200">
             Ala Parque Industrial - São José dos Campos
           </span>
@@ -23,20 +30,36 @@ export default function Header({ stats, viewMode, onViewModeChange }) {
       <div className="flex items-center gap-3 flex-wrap justify-end">
         <div className="flex gap-4">
           <div className="text-center">
-            <span className="block text-lg font-bold text-white">{stats.totalFamilias ?? "-"}</span>
-            <span className="block text-[10px] text-blue-200 uppercase tracking-wide">Famílias</span>
+            <span className="block text-lg font-bold text-white">
+              {stats.totalFamilias ?? "-"}
+            </span>
+            <span className="block text-[10px] text-blue-200 uppercase tracking-wide">
+              Famílias
+            </span>
           </div>
           <div className="text-center">
-            <span className="block text-lg font-bold text-white">{stats.totalMembros ?? "-"}</span>
-            <span className="block text-[10px] text-blue-200 uppercase tracking-wide">Membros</span>
+            <span className="block text-lg font-bold text-white">
+              {stats.totalMembros ?? "-"}
+            </span>
+            <span className="block text-[10px] text-blue-200 uppercase tracking-wide">
+              Membros
+            </span>
           </div>
           <div className="text-center">
-            <span className="block text-lg font-bold text-white">{stats.totalVisitas ?? "-"}</span>
-            <span className="block text-[10px] text-blue-200 uppercase tracking-wide">Visitas</span>
+            <span className="block text-lg font-bold text-white">
+              {stats.totalVisitas ?? "-"}
+            </span>
+            <span className="block text-[10px] text-blue-200 uppercase tracking-wide">
+              Visitas
+            </span>
           </div>
           <div className="text-center">
-            <span className="block text-lg font-bold text-white">{stats.comCoordenadas ?? "-"}</span>
-            <span className="block text-[10px] text-blue-200 uppercase tracking-wide">No Mapa</span>
+            <span className="block text-lg font-bold text-white">
+              {stats.comCoordenadas ?? "-"}
+            </span>
+            <span className="block text-[10px] text-blue-200 uppercase tracking-wide">
+              No Mapa
+            </span>
           </div>
         </div>
 
