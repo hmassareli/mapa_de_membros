@@ -14,7 +14,7 @@ export default defineConfig({
     rollupOptions: {
       external: ["html2canvas"],
       output: {
-        globals: { "html2canvas": "html2canvas" },
+        globals: { html2canvas: "html2canvas" },
       },
     },
   },

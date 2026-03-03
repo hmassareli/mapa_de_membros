@@ -146,11 +146,17 @@ export default function MainPage() {
         });
         // Atualizar mapa em tempo real quando família recebe coordenadas
         if (p.ultimaFamiliaId && p.ultimaCoords) {
-          setFamilias(prev => prev.map(f =>
-            f.id === p.ultimaFamiliaId
-              ? { ...f, latitude: p.ultimaCoords.lat, longitude: p.ultimaCoords.lon }
-              : f
-          ));
+          setFamilias((prev) =>
+            prev.map((f) =>
+              f.id === p.ultimaFamiliaId
+                ? {
+                    ...f,
+                    latitude: p.ultimaCoords.lat,
+                    longitude: p.ultimaCoords.lon,
+                  }
+                : f,
+            ),
+          );
         }
       });
       geocodeClient.setOnComplete((p) => {
@@ -187,11 +193,17 @@ export default function MainPage() {
         });
         // Atualizar mapa em tempo real quando família recebe coordenadas
         if (p.ultimaFamiliaId && p.ultimaCoords) {
-          setFamilias(prev => prev.map(f =>
-            f.id === p.ultimaFamiliaId
-              ? { ...f, latitude: p.ultimaCoords.lat, longitude: p.ultimaCoords.lon }
-              : f
-          ));
+          setFamilias((prev) =>
+            prev.map((f) =>
+              f.id === p.ultimaFamiliaId
+                ? {
+                    ...f,
+                    latitude: p.ultimaCoords.lat,
+                    longitude: p.ultimaCoords.lon,
+                  }
+                : f,
+            ),
+          );
         }
       });
       geocodeClient.setOnComplete((p) => {

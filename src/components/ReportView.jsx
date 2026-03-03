@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import { STATUS_LABELS } from "../lib/utils";
 import HouseholdCard from "./HouseholdCard";
 
 function gerarPdfAlteracoes(reportData) {
@@ -12,19 +11,30 @@ function gerarPdfAlteracoes(reportData) {
         return;
       }
 
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
       const pageW = doc.internal.pageSize.getWidth();
       const margin = 14;
 
       // Header
       doc.setFontSize(16);
       doc.setFont("helvetica", "bold");
-      doc.text("Relatório de Alterações de Endereço", pageW / 2, 20, { align: "center" });
+      doc.text("Relatório de Alterações de Endereço", pageW / 2, 20, {
+        align: "center",
+      });
 
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       const dataHoje = new Date().toLocaleDateString("pt-BR");
-      doc.text(`Gerado em: ${dataHoje}  •  Total: ${editadas.length} família(s)`, pageW / 2, 28, { align: "center" });
+      doc.text(
+        `Gerado em: ${dataHoje}  •  Total: ${editadas.length} família(s)`,
+        pageW / 2,
+        28,
+        { align: "center" },
+      );
 
       // Table
       const rows = editadas.map((f) => {
