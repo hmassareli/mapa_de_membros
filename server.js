@@ -361,7 +361,9 @@ app.post("/api/sincronizar", (req, res) => {
         }
 
         const row = db
-          .prepare("SELECT id FROM familias WHERE household_uuid = ? AND usuario_id = ?")
+          .prepare(
+            "SELECT id FROM familias WHERE household_uuid = ? AND usuario_id = ?",
+          )
           .get(familia.householdUuid, usuarioId);
         if (!row) continue;
 
@@ -410,10 +412,17 @@ app.post("/api/sincronizar", (req, res) => {
 app.post("/api/resetar", (req, res) => {
   try {
     const usuarioId = req.usuario.usuario_id;
-    db.prepare("DELETE FROM visitas WHERE familia_id IN (SELECT id FROM familias WHERE usuario_id = ?)").run(usuarioId);
-    db.prepare("DELETE FROM membros WHERE familia_id IN (SELECT id FROM familias WHERE usuario_id = ?)").run(usuarioId);
+    db.prepare(
+      "DELETE FROM visitas WHERE familia_id IN (SELECT id FROM familias WHERE usuario_id = ?)",
+    ).run(usuarioId);
+    db.prepare(
+      "DELETE FROM membros WHERE familia_id IN (SELECT id FROM familias WHERE usuario_id = ?)",
+    ).run(usuarioId);
     db.prepare("DELETE FROM familias WHERE usuario_id = ?").run(usuarioId);
-    res.json({ sucesso: true, mensagem: "Todos os seus dados foram apagados." });
+    res.json({
+      sucesso: true,
+      mensagem: "Todos os seus dados foram apagados.",
+    });
   } catch (err) {
     res.status(500).json({ erro: err.message });
   }
@@ -486,7 +495,9 @@ app.get("/api/geocode-stats", (req, res) => {
       )
       .all(usuarioId);
 
-    const total = db.prepare("SELECT COUNT(*) as n FROM familias WHERE usuario_id = ?").get(usuarioId).n;
+    const total = db
+      .prepare("SELECT COUNT(*) as n FROM familias WHERE usuario_id = ?")
+      .get(usuarioId).n;
     const semEndereco = db
       .prepare(
         "SELECT COUNT(*) as n FROM familias WHERE (endereco_completo = '' OR endereco_completo IS NULL) AND usuario_id = ?",
@@ -502,7 +513,9 @@ app.get("/api/geocode-stats", (req, res) => {
 // Verificar se tem dados importados
 app.get("/api/tem-dados", (req, res) => {
   const usuarioId = req.usuario.usuario_id;
-  const count = db.prepare("SELECT COUNT(*) as n FROM familias WHERE usuario_id = ?").get(usuarioId).n;
+  const count = db
+    .prepare("SELECT COUNT(*) as n FROM familias WHERE usuario_id = ?")
+    .get(usuarioId).n;
   const semCoord = db
     .prepare(
       "SELECT COUNT(*) as n FROM familias WHERE latitude IS NULL AND endereco_completo != ? AND usuario_id = ?",
@@ -682,8 +695,11 @@ app.put("/api/familias/:id", (req, res) => {
     const usuarioId = req.usuario.usuario_id;
 
     // Verificar ownership
-    const existe = db.prepare("SELECT id FROM familias WHERE id = ? AND usuario_id = ?").get(req.params.id, usuarioId);
-    if (!existe) return res.status(404).json({ erro: "Família não encontrada" });
+    const existe = db
+      .prepare("SELECT id FROM familias WHERE id = ? AND usuario_id = ?")
+      .get(req.params.id, usuarioId);
+    if (!existe)
+      return res.status(404).json({ erro: "Família não encontrada" });
 
     const sets = [];
     const params = [];
@@ -785,8 +801,11 @@ app.post("/api/visitas", (req, res) => {
   try {
     // Verificar ownership da família
     const usuarioId = req.usuario.usuario_id;
-    const familia = db.prepare("SELECT id FROM familias WHERE id = ? AND usuario_id = ?").get(familia_id, usuarioId);
-    if (!familia) return res.status(404).json({ erro: "Família não encontrada" });
+    const familia = db
+      .prepare("SELECT id FROM familias WHERE id = ? AND usuario_id = ?")
+      .get(familia_id, usuarioId);
+    if (!familia)
+      return res.status(404).json({ erro: "Família não encontrada" });
 
     const result = db
       .prepare(
@@ -818,9 +837,11 @@ app.delete("/api/visitas/:id", (req, res) => {
   try {
     const usuarioId = req.usuario.usuario_id;
     // Verificar ownership via família
-    const visita = db.prepare(
-      "SELECT v.id FROM visitas v JOIN familias f ON f.id = v.familia_id WHERE v.id = ? AND f.usuario_id = ?"
-    ).get(req.params.id, usuarioId);
+    const visita = db
+      .prepare(
+        "SELECT v.id FROM visitas v JOIN familias f ON f.id = v.familia_id WHERE v.id = ? AND f.usuario_id = ?",
+      )
+      .get(req.params.id, usuarioId);
     if (!visita) return res.status(404).json({ erro: "Visita não encontrada" });
 
     db.prepare("DELETE FROM visitas WHERE id = ?").run(req.params.id);
@@ -837,10 +858,13 @@ app.put("/api/visitas/:id", (req, res) => {
   try {
     const usuarioId = req.usuario.usuario_id;
     // Verificar ownership via família
-    const visitaOwner = db.prepare(
-      "SELECT v.id FROM visitas v JOIN familias f ON f.id = v.familia_id WHERE v.id = ? AND f.usuario_id = ?"
-    ).get(req.params.id, usuarioId);
-    if (!visitaOwner) return res.status(404).json({ erro: "Visita não encontrada" });
+    const visitaOwner = db
+      .prepare(
+        "SELECT v.id FROM visitas v JOIN familias f ON f.id = v.familia_id WHERE v.id = ? AND f.usuario_id = ?",
+      )
+      .get(req.params.id, usuarioId);
+    if (!visitaOwner)
+      return res.status(404).json({ erro: "Visita não encontrada" });
 
     const sets = [];
     const params = [];
@@ -892,17 +916,33 @@ app.get("/api/estatisticas", (req, res) => {
   try {
     const usuarioId = req.usuario.usuario_id;
     const stats = {
-      totalFamilias: db.prepare("SELECT COUNT(*) as n FROM familias WHERE usuario_id = ?").get(usuarioId).n,
-      totalMembros: db.prepare("SELECT COUNT(*) as n FROM membros m JOIN familias f ON f.id = m.familia_id WHERE f.usuario_id = ?").get(usuarioId).n,
-      totalVisitas: db.prepare("SELECT COUNT(*) as n FROM visitas v JOIN familias f ON f.id = v.familia_id WHERE f.usuario_id = ?").get(usuarioId).n,
+      totalFamilias: db
+        .prepare("SELECT COUNT(*) as n FROM familias WHERE usuario_id = ?")
+        .get(usuarioId).n,
+      totalMembros: db
+        .prepare(
+          "SELECT COUNT(*) as n FROM membros m JOIN familias f ON f.id = m.familia_id WHERE f.usuario_id = ?",
+        )
+        .get(usuarioId).n,
+      totalVisitas: db
+        .prepare(
+          "SELECT COUNT(*) as n FROM visitas v JOIN familias f ON f.id = v.familia_id WHERE f.usuario_id = ?",
+        )
+        .get(usuarioId).n,
       familiasAtivas: db
-        .prepare("SELECT COUNT(*) as n FROM familias WHERE status = 'ativo' AND usuario_id = ?")
+        .prepare(
+          "SELECT COUNT(*) as n FROM familias WHERE status = 'ativo' AND usuario_id = ?",
+        )
         .get(usuarioId).n,
       familiasInativas: db
-        .prepare("SELECT COUNT(*) as n FROM familias WHERE status = 'inativo' AND usuario_id = ?")
+        .prepare(
+          "SELECT COUNT(*) as n FROM familias WHERE status = 'inativo' AND usuario_id = ?",
+        )
         .get(usuarioId).n,
       familiasMudaram: db
-        .prepare("SELECT COUNT(*) as n FROM familias WHERE status = 'mudou' AND usuario_id = ?")
+        .prepare(
+          "SELECT COUNT(*) as n FROM familias WHERE status = 'mudou' AND usuario_id = ?",
+        )
         .get(usuarioId).n,
       familiasDesconhecido: db
         .prepare(
@@ -935,7 +975,9 @@ app.get("/api/estatisticas", (req, res) => {
         )
         .get(usuarioId).n,
       semCoordenadas: db
-        .prepare("SELECT COUNT(*) as n FROM familias WHERE latitude IS NULL AND usuario_id = ?")
+        .prepare(
+          "SELECT COUNT(*) as n FROM familias WHERE latitude IS NULL AND usuario_id = ?",
+        )
         .get(usuarioId).n,
     };
     res.json(stats);
@@ -960,8 +1002,11 @@ app.post("/api/geocodificar/:id", async (req, res) => {
   try {
     const usuarioId = req.usuario.usuario_id;
     // Verificar ownership
-    const existe = db.prepare("SELECT id FROM familias WHERE id = ? AND usuario_id = ?").get(req.params.id, usuarioId);
-    if (!existe) return res.status(404).json({ erro: "Família não encontrada" });
+    const existe = db
+      .prepare("SELECT id FROM familias WHERE id = ? AND usuario_id = ?")
+      .get(req.params.id, usuarioId);
+    if (!existe)
+      return res.status(404).json({ erro: "Família não encontrada" });
 
     const fonte = geocode_fonte || "manual";
     db.prepare(

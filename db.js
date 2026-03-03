@@ -105,9 +105,9 @@ try {
       .prepare("SELECT id FROM usuarios ORDER BY id LIMIT 1")
       .get();
     if (primeiroUsuario) {
-      db.prepare("UPDATE familias SET usuario_id = ? WHERE usuario_id IS NULL").run(
-        primeiroUsuario.id,
-      );
+      db.prepare(
+        "UPDATE familias SET usuario_id = ? WHERE usuario_id IS NULL",
+      ).run(primeiroUsuario.id);
     }
     console.log("Migração: coluna usuario_id adicionada para multi-tenancy.");
   }
@@ -121,14 +121,24 @@ try {
 // ========================
 try {
   // Limpar tabela temporária de migração anterior que falhou
-  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='familias_old_mt'").get();
+  const tables = db
+    .prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='familias_old_mt'",
+    )
+    .get();
   if (tables) {
     // Migração anterior falhou no meio — verificar se familias existe
-    const familiasExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='familias'").get();
+    const familiasExists = db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='familias'",
+      )
+      .get();
     if (!familiasExists) {
       // familias foi renomeada mas nunca recriada — restaurar
       db.exec("ALTER TABLE familias_old_mt RENAME TO familias");
-      console.log("Recuperação: tabela familias restaurada de familias_old_mt.");
+      console.log(
+        "Recuperação: tabela familias restaurada de familias_old_mt.",
+      );
     } else {
       // Ambas existem — dados já foram copiados, podemos remover a velha
       db.exec("DROP TABLE IF EXISTS familias_old_mt");
@@ -179,7 +189,9 @@ try {
           endereco_editado INTEGER DEFAULT 0
         )
       `);
-      db.exec(`INSERT INTO familias (${colNames}) SELECT ${colNames} FROM familias_old_mt`);
+      db.exec(
+        `INSERT INTO familias (${colNames}) SELECT ${colNames} FROM familias_old_mt`,
+      );
       db.exec("DROP TABLE familias_old_mt");
     })();
 
@@ -190,13 +202,23 @@ try {
   console.error("Erro na migração de UNIQUE household_uuid:", e.message);
   // Tentar recuperar
   try {
-    const familiasExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='familias'").get();
-    const oldExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='familias_old_mt'").get();
+    const familiasExists = db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='familias'",
+      )
+      .get();
+    const oldExists = db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='familias_old_mt'",
+      )
+      .get();
     if (!familiasExists && oldExists) {
       db.exec("ALTER TABLE familias_old_mt RENAME TO familias");
       console.log("Recuperação: tabela familias restaurada.");
     }
-  } catch (e2) { /* nada a fazer */ }
+  } catch (e2) {
+    /* nada a fazer */
+  }
   db.pragma("foreign_keys = ON");
 }
 
@@ -272,11 +294,15 @@ try {
       const statusColInfo = db.pragma("table_info(familias)");
       const statusColNames = statusColInfo.map((c) => c.name);
       // Colunas que precisam de CASE WHEN
-      const selectCols = statusColNames.map((name) => {
-        if (name === "status") return "CASE WHEN status = 'ativo' THEN 'nao_contatado' ELSE status END";
-        if (name === "aceita_visitas") return "CASE WHEN aceita_visitas = 'sim' THEN 'nao_contatado' ELSE aceita_visitas END";
-        return name;
-      }).join(", ");
+      const selectCols = statusColNames
+        .map((name) => {
+          if (name === "status")
+            return "CASE WHEN status = 'ativo' THEN 'nao_contatado' ELSE status END";
+          if (name === "aceita_visitas")
+            return "CASE WHEN aceita_visitas = 'sim' THEN 'nao_contatado' ELSE aceita_visitas END";
+          return name;
+        })
+        .join(", ");
       const colNameStr = statusColNames.join(", ");
 
       db.exec(`ALTER TABLE familias RENAME TO familias_old`);
@@ -306,7 +332,9 @@ try {
         )
       `);
 
-      db.exec(`INSERT INTO familias (${colNameStr}) SELECT ${selectCols} FROM familias_old`);
+      db.exec(
+        `INSERT INTO familias (${colNameStr}) SELECT ${selectCols} FROM familias_old`,
+      );
       db.exec(`DROP TABLE familias_old`);
       db.pragma("foreign_keys = ON");
       console.log(

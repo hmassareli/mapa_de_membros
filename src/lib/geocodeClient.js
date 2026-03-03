@@ -189,9 +189,7 @@ async function tentarNominatim(f, dadosCep = null) {
     if (somenteRua.length > 3) {
       await delay(1100);
       const ruaNorm = normalizarRua(somenteRua);
-      coords = await geocodificarEndereco(
-        `${ruaNorm}, ${cidadeCompleta}`,
-      );
+      coords = await geocodificarEndereco(`${ruaNorm}, ${cidadeCompleta}`);
       if (coords) return { coords, estrategia: "Nominatim (só rua)" };
     }
   }
