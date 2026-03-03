@@ -917,7 +917,9 @@ body {
   padding: 16px;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
 }
 
 .sync-upload-area:hover {

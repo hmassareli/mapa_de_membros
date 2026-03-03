@@ -1,39 +1,47 @@
-import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { ToastProvider } from './hooks/useToast'
-import LoginPage from './pages/LoginPage'
-import SetupPage from './pages/SetupPage'
-import MainPage from './pages/MainPage'
-import { api } from './lib/api'
+import { useEffect, useState } from "react";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import { ToastProvider } from "./hooks/useToast";
+import { api } from "./lib/api";
+import LoginPage from "./pages/LoginPage";
+import MainPage from "./pages/MainPage";
+import SetupPage from "./pages/SetupPage";
 
 function AuthGuard({ children }) {
-  const [state, setState] = useState('loading')
-  const navigate = useNavigate()
-  const location = useLocation()
+  const [state, setState] = useState("loading");
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     async function check() {
       try {
-        const status = await api.authStatus()
-        if (cancelled) return
+        const status = await api.authStatus();
+        if (cancelled) return;
         if (!status.configurado) {
-          navigate('/setup', { replace: true })
-          return
+          navigate("/setup", { replace: true });
+          return;
         }
-        await api.authMe()
-        if (cancelled) return
-        setState('ok')
+        await api.authMe();
+        if (cancelled) return;
+        setState("ok");
       } catch {
-        if (!cancelled) navigate('/login', { replace: true })
+        if (!cancelled) navigate("/login", { replace: true });
       }
     }
-    check()
-    return () => { cancelled = true }
-  }, [location.pathname])
+    check();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname]);
 
-  if (state === 'loading') return null
-  return children
+  if (state === "loading") return null;
+  return children;
 }
 
 export default function App() {
@@ -54,5 +62,5 @@ export default function App() {
         </Routes>
       </ToastProvider>
     </BrowserRouter>
-  )
+  );
 }

@@ -1063,14 +1063,10 @@ function setupEventListeners() {
     });
 
   // Sync panel
-  document
-    .getElementById("btnSync")
-    .addEventListener("click", toggleSyncPanel);
-  document
-    .getElementById("closeSyncPanel")
-    .addEventListener("click", () => {
-      document.getElementById("syncPanel").style.display = "none";
-    });
+  document.getElementById("btnSync").addEventListener("click", toggleSyncPanel);
+  document.getElementById("closeSyncPanel").addEventListener("click", () => {
+    document.getElementById("syncPanel").style.display = "none";
+  });
 
   // Pin placement mode
   document.getElementById("btnPinMode").addEventListener("click", () => {
@@ -1362,7 +1358,8 @@ async function toggleSyncPanel() {
 
 async function loadSyncPanel() {
   const content = document.getElementById("syncContent");
-  content.innerHTML = '<p style="text-align:center; color: var(--gray-400);">Carregando...</p>';
+  content.innerHTML =
+    '<p style="text-align:center; color: var(--gray-400);">Carregando...</p>';
 
   try {
     const [statsRes, geocodeRes] = await Promise.all([
@@ -1375,15 +1372,17 @@ async function loadSyncPanel() {
 
     // Parse geocode stats
     const fonteMap = {};
-    (geocode.stats || []).forEach(s => { fonteMap[s.geocode_fonte || 'null'] = s.total; });
-    const totalCep = fonteMap['cep'] || 0;
-    const totalNominatim = fonteMap['nominatim'] || 0;
-    const totalManual = fonteMap['manual'] || 0;
-    const totalFalhou = fonteMap['nominatim_falhou'] || 0;
-    const totalSemCoord = fonteMap['null'] || 0;
+    (geocode.stats || []).forEach((s) => {
+      fonteMap[s.geocode_fonte || "null"] = s.total;
+    });
+    const totalCep = fonteMap["cep"] || 0;
+    const totalNominatim = fonteMap["nominatim"] || 0;
+    const totalManual = fonteMap["manual"] || 0;
+    const totalFalhou = fonteMap["nominatim_falhou"] || 0;
+    const totalSemCoord = fonteMap["null"] || 0;
     const totalNoMapa = geocode.total - totalSemCoord;
 
-    const totalMembros = db_totalMembros || '-';
+    const totalMembros = db_totalMembros || "-";
 
     content.innerHTML = `
       <!-- Estatísticas de geocodificação -->
@@ -1398,8 +1397,8 @@ async function loadSyncPanel() {
           <div class="sync-stat"><span class="stat-val">${totalFalhou}</span><span class="stat-lbl">Nominatim falhou</span></div>
         </div>
         <div class="sync-btn-group">
-          ${totalCep > 0 ? `<button class="btn btn-secondary" onclick="acaoRefinar()">🔄 Refinar ${totalCep} via Nominatim</button>` : ''}
-          ${totalFalhou > 0 ? `<button class="btn btn-secondary" onclick="acaoRetentarFalhou()">🔁 Retentar ${totalFalhou} que falharam</button>` : ''}
+          ${totalCep > 0 ? `<button class="btn btn-secondary" onclick="acaoRefinar()">🔄 Refinar ${totalCep} via Nominatim</button>` : ""}
+          ${totalFalhou > 0 ? `<button class="btn btn-secondary" onclick="acaoRetentarFalhou()">🔁 Retentar ${totalFalhou} que falharam</button>` : ""}
           <button class="btn btn-secondary" onclick="acaoRegeocodificarTudo()">🗺️ Regeocodificar tudo</button>
         </div>
       </div>
@@ -1429,13 +1428,13 @@ async function loadSyncPanel() {
 }
 
 // Variável auxiliar para exibir total de membros
-let db_totalMembros = '-';
+let db_totalMembros = "-";
 (async () => {
   try {
     const r = await fetch(`${API}/api/tem-dados`);
     const d = await r.json();
-    db_totalMembros = d.totalFamilias || '-';
-  } catch(e) {}
+    db_totalMembros = d.totalFamilias || "-";
+  } catch (e) {}
 })();
 
 async function sincronizarJSON(input) {
@@ -1504,7 +1503,12 @@ async function acaoRetentarFalhou() {
 }
 
 async function acaoRegeocodificarTudo() {
-  if (!confirm("Isso vai apagar TODAS as coordenadas e regeocodificar do zero. Continuar?")) return;
+  if (
+    !confirm(
+      "Isso vai apagar TODAS as coordenadas e regeocodificar do zero. Continuar?",
+    )
+  )
+    return;
 
   try {
     const res = await fetch(`${API}/api/regeocodificar`, {
@@ -1524,8 +1528,18 @@ async function acaoRegeocodificarTudo() {
 }
 
 async function acaoResetarDados() {
-  if (!confirm("⚠️ ATENÇÃO: Isso vai apagar TODOS os dados (famílias, membros, visitas). Esta ação NÃO pode ser desfeita. Continuar?")) return;
-  if (!confirm("Tem certeza absoluta? Todos os dados serão perdidos permanentemente.")) return;
+  if (
+    !confirm(
+      "⚠️ ATENÇÃO: Isso vai apagar TODOS os dados (famílias, membros, visitas). Esta ação NÃO pode ser desfeita. Continuar?",
+    )
+  )
+    return;
+  if (
+    !confirm(
+      "Tem certeza absoluta? Todos os dados serão perdidos permanentemente.",
+    )
+  )
+    return;
 
   try {
     const res = await fetch(`${API}/api/resetar`, { method: "POST" });

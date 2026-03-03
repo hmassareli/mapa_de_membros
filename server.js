@@ -216,7 +216,9 @@ app.post("/api/sincronizar", (req, res) => {
   const { dados } = req.body;
 
   if (!dados || !Array.isArray(dados) || dados.length === 0) {
-    return res.status(400).json({ erro: 'Envie o array de membros no campo "dados"' });
+    return res
+      .status(400)
+      .json({ erro: 'Envie o array de membros no campo "dados"' });
   }
 
   try {
@@ -266,7 +268,9 @@ app.post("/api/sincronizar", (req, res) => {
       });
     });
 
-    const buscarFamilia = db.prepare("SELECT * FROM familias WHERE household_uuid = ?");
+    const buscarFamilia = db.prepare(
+      "SELECT * FROM familias WHERE household_uuid = ?",
+    );
     const inserirFamilia = db.prepare(`
       INSERT INTO familias (household_uuid, nome_familia, endereco_linha1, endereco_linha2, endereco_linha3, endereco_completo, ala, telefone, email, status, aceita_visitas)
       VALUES (@householdUuid, @nomeFamilia, @enderecoLinha1, @enderecoLinha2, @enderecoLinha3, @enderecoCompleto, @ala, @telefone, @email, 'nao_contatado', 'nao_contatado')
@@ -285,7 +289,9 @@ app.post("/api/sincronizar", (req, res) => {
       WHERE id = ?
     `);
 
-    const buscarMembro = db.prepare("SELECT * FROM membros WHERE pessoa_uuid = ?");
+    const buscarMembro = db.prepare(
+      "SELECT * FROM membros WHERE pessoa_uuid = ?",
+    );
     const inserirMembro = db.prepare(`
       INSERT INTO membros (pessoa_uuid, familia_id, nome_completo, primeiro_nome, sobrenome, sexo, idade, telefone, email, papel_familia, sacerdocio, e_membro, e_adulto, e_jovem_adulto_solteiro, e_adulto_solteiro, data_nascimento)
       VALUES (@pessoaUuid, @familiaId, @nomeCompleto, @primeiroNome, @sobrenome, @sexo, @idade, @telefone, @email, @papelFamilia, @sacerdocio, @eMembro, @eAdulto, @eJovemAdultoSolteiro, @eAdultoSolteiro, @dataNascimento)
@@ -302,15 +308,18 @@ app.post("/api/sincronizar", (req, res) => {
     `);
 
     const sincronizar = db.transaction(() => {
-      let familiasNovas = 0, familiasAtualizadas = 0, enderecosAlterados = 0;
-      let membrosNovos = 0, membrosAtualizados = 0;
+      let familiasNovas = 0,
+        familiasAtualizadas = 0,
+        enderecosAlterados = 0;
+      let membrosNovos = 0,
+        membrosAtualizados = 0;
 
       for (const familia of Object.values(familias)) {
         const existente = buscarFamilia.get(familia.householdUuid);
 
         if (existente) {
           // Verificar se endereço mudou
-          const enderecoMudou = 
+          const enderecoMudou =
             existente.endereco_completo !== familia.enderecoCompleto ||
             existente.endereco_linha1 !== familia.enderecoLinha1;
 
@@ -346,7 +355,9 @@ app.post("/api/sincronizar", (req, res) => {
           familiasNovas++;
         }
 
-        const row = db.prepare("SELECT id FROM familias WHERE household_uuid = ?").get(familia.householdUuid);
+        const row = db
+          .prepare("SELECT id FROM familias WHERE household_uuid = ?")
+          .get(familia.householdUuid);
         if (!row) continue;
 
         for (const membro of familia.membros) {
@@ -363,7 +374,13 @@ app.post("/api/sincronizar", (req, res) => {
         }
       }
 
-      return { familiasNovas, familiasAtualizadas, enderecosAlterados, membrosNovos, membrosAtualizados };
+      return {
+        familiasNovas,
+        familiasAtualizadas,
+        enderecosAlterados,
+        membrosNovos,
+        membrosAtualizados,
+      };
     });
 
     const r = sincronizar();
@@ -406,21 +423,39 @@ app.post("/api/regeocodificar", (req, res) => {
   try {
     let affected = 0;
     if (modo === "todos") {
-      const r = db.prepare("UPDATE familias SET latitude = NULL, longitude = NULL, geocode_fonte = NULL WHERE endereco_completo != ''").run();
+      const r = db
+        .prepare(
+          "UPDATE familias SET latitude = NULL, longitude = NULL, geocode_fonte = NULL WHERE endereco_completo != ''",
+        )
+        .run();
       affected = r.changes;
     } else if (modo === "cep") {
       // Resetar só os que ficaram como CEP (não refinados)
-      const r = db.prepare("UPDATE familias SET geocode_fonte = 'cep' WHERE geocode_fonte IN ('nominatim', 'nominatim_falhou')").run();
+      const r = db
+        .prepare(
+          "UPDATE familias SET geocode_fonte = 'cep' WHERE geocode_fonte IN ('nominatim', 'nominatim_falhou')",
+        )
+        .run();
       affected = r.changes;
     } else if (modo === "falhou") {
       // Resetar só os que falharam no Nominatim para tentar de novo
-      const r = db.prepare("UPDATE familias SET geocode_fonte = 'cep' WHERE geocode_fonte = 'nominatim_falhou'").run();
+      const r = db
+        .prepare(
+          "UPDATE familias SET geocode_fonte = 'cep' WHERE geocode_fonte = 'nominatim_falhou'",
+        )
+        .run();
       affected = r.changes;
     } else {
-      return res.status(400).json({ erro: "Modo inválido. Use: todos, cep, falhou" });
+      return res
+        .status(400)
+        .json({ erro: "Modo inválido. Use: todos, cep, falhou" });
     }
 
-    res.json({ sucesso: true, afetados: affected, mensagem: `${affected} famílias marcadas para regeocodificação.` });
+    res.json({
+      sucesso: true,
+      afetados: affected,
+      mensagem: `${affected} famílias marcadas para regeocodificação.`,
+    });
   } catch (err) {
     res.status(500).json({ erro: err.message });
   }
@@ -432,16 +467,24 @@ app.post("/api/regeocodificar", (req, res) => {
 
 app.get("/api/geocode-stats", (req, res) => {
   try {
-    const stats = db.prepare(`
+    const stats = db
+      .prepare(
+        `
       SELECT 
         geocode_fonte,
         COUNT(*) as total
       FROM familias 
       GROUP BY geocode_fonte
-    `).all();
+    `,
+      )
+      .all();
 
     const total = db.prepare("SELECT COUNT(*) as n FROM familias").get().n;
-    const semEndereco = db.prepare("SELECT COUNT(*) as n FROM familias WHERE endereco_completo = '' OR endereco_completo IS NULL").get().n;
+    const semEndereco = db
+      .prepare(
+        "SELECT COUNT(*) as n FROM familias WHERE endereco_completo = '' OR endereco_completo IS NULL",
+      )
+      .get().n;
 
     res.json({ stats, total, semEndereco });
   } catch (err) {
@@ -894,7 +937,9 @@ app.post("/api/geocodificar/:id", async (req, res) => {
 
 app.get("/api/relatorio", (req, res) => {
   try {
-    const familias = db.prepare(`
+    const familias = db
+      .prepare(
+        `
       SELECT f.*,
         COUNT(m.id) as total_membros,
         (SELECT COUNT(*) FROM visitas v WHERE v.familia_id = f.id) as total_visitas,
@@ -903,13 +948,15 @@ app.get("/api/relatorio", (req, res) => {
       LEFT JOIN membros m ON m.familia_id = f.id
       GROUP BY f.id
       ORDER BY f.nome_familia
-    `).all();
+    `,
+      )
+      .all();
 
     const getMembros = db.prepare(
-      "SELECT * FROM membros WHERE familia_id = ? ORDER BY papel_familia, primeiro_nome"
+      "SELECT * FROM membros WHERE familia_id = ? ORDER BY papel_familia, primeiro_nome",
     );
     const getUltimaVisita = db.prepare(
-      "SELECT * FROM visitas WHERE familia_id = ? ORDER BY data_visita DESC LIMIT 1"
+      "SELECT * FROM visitas WHERE familia_id = ? ORDER BY data_visita DESC LIMIT 1",
     );
 
     const resultado = familias.map((f) => ({
