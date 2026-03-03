@@ -21,9 +21,8 @@ app.use(auth.setupMiddleware);
 // Depois: verifica se está logado
 app.use(auth.authMiddleware);
 
-// Arquivos estáticos servidos APÓS a autenticação
-// (login.html e setup.html são permitidos pelo authMiddleware)
-app.use(express.static(path.join(__dirname, "public")));
+// Arquivos estáticos (React build)
+app.use(express.static(path.join(__dirname, "dist")));
 
 // ========================
 // ROTAS DE AUTENTICAÇÃO
@@ -209,6 +208,247 @@ app.post("/api/importar", (req, res) => {
   }
 });
 
+// ========================
+// SINCRONIZAR (MERGE) - Atualiza dados existentes + adiciona novos
+// ========================
+
+app.post("/api/sincronizar", (req, res) => {
+  const { dados } = req.body;
+
+  if (!dados || !Array.isArray(dados) || dados.length === 0) {
+    return res.status(400).json({ erro: 'Envie o array de membros no campo "dados"' });
+  }
+
+  try {
+    // Agrupar por household (mesma lógica do importar)
+    const familias = {};
+    dados.forEach((membro) => {
+      const hhId = membro.householdUuid;
+      if (!hhId) return;
+
+      if (!familias[hhId]) {
+        const addr = membro.address || {};
+        familias[hhId] = {
+          householdUuid: hhId,
+          nomeFamilia:
+            membro.householdNameDirectoryLocal ||
+            membro.householdNameFamilyLocal ||
+            "Desconhecido",
+          enderecoLinha1: addr.formattedLine1 || "",
+          enderecoLinha2: addr.formattedLine2 || "",
+          enderecoLinha3: addr.formattedLine3 || "",
+          enderecoCompleto: (addr.addressLines || []).join(", "),
+          ala: membro.unitName || "",
+          telefone: membro.phoneNumber || "",
+          email: membro.email || "",
+          membros: [],
+        };
+      }
+
+      familias[hhId].membros.push({
+        pessoaUuid: membro.personUuid || membro.uuid,
+        nomeCompleto:
+          membro.nameFormats?.listPreferredLocal ||
+          `${membro.nameFormats?.familyPreferredLocal || ""}, ${membro.nameFormats?.givenPreferredLocal || ""}`,
+        primeiroNome: membro.nameFormats?.givenPreferredLocal || "",
+        sobrenome: membro.nameFormats?.familyPreferredLocal || "",
+        sexo: membro.sex || "",
+        idade: membro.age ? String(membro.age) : "",
+        telefone: membro.phoneNumber || "",
+        email: membro.email || "",
+        papelFamilia: membro.householdRole || "OTHER",
+        sacerdocio: membro.priesthoodOffice || "",
+        eMembro: membro.isMember ? 1 : 0,
+        eAdulto: membro.isAdult ? 1 : 0,
+        eJovemAdultoSolteiro: membro.isYoungSingleAdult ? 1 : 0,
+        eAdultoSolteiro: membro.isSingleAdult ? 1 : 0,
+        dataNascimento: membro.birth?.date?.display || "",
+      });
+    });
+
+    const buscarFamilia = db.prepare("SELECT * FROM familias WHERE household_uuid = ?");
+    const inserirFamilia = db.prepare(`
+      INSERT INTO familias (household_uuid, nome_familia, endereco_linha1, endereco_linha2, endereco_linha3, endereco_completo, ala, telefone, email, status, aceita_visitas)
+      VALUES (@householdUuid, @nomeFamilia, @enderecoLinha1, @enderecoLinha2, @enderecoLinha3, @enderecoCompleto, @ala, @telefone, @email, 'nao_contatado', 'nao_contatado')
+    `);
+    const atualizarFamilia = db.prepare(`
+      UPDATE familias SET 
+        nome_familia = @nomeFamilia,
+        endereco_linha1 = @enderecoLinha1, endereco_linha2 = @enderecoLinha2, endereco_linha3 = @enderecoLinha3,
+        endereco_completo = @enderecoCompleto, ala = @ala, telefone = @telefone, email = @email,
+        atualizado_em = CURRENT_TIMESTAMP
+      WHERE household_uuid = @householdUuid
+    `);
+    // Se endereço mudou, resetar geocode para re-geocodificar
+    const resetarGeocode = db.prepare(`
+      UPDATE familias SET latitude = NULL, longitude = NULL, geocode_fonte = NULL, atualizado_em = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    const buscarMembro = db.prepare("SELECT * FROM membros WHERE pessoa_uuid = ?");
+    const inserirMembro = db.prepare(`
+      INSERT INTO membros (pessoa_uuid, familia_id, nome_completo, primeiro_nome, sobrenome, sexo, idade, telefone, email, papel_familia, sacerdocio, e_membro, e_adulto, e_jovem_adulto_solteiro, e_adulto_solteiro, data_nascimento)
+      VALUES (@pessoaUuid, @familiaId, @nomeCompleto, @primeiroNome, @sobrenome, @sexo, @idade, @telefone, @email, @papelFamilia, @sacerdocio, @eMembro, @eAdulto, @eJovemAdultoSolteiro, @eAdultoSolteiro, @dataNascimento)
+    `);
+    const atualizarMembro = db.prepare(`
+      UPDATE membros SET 
+        nome_completo = @nomeCompleto, primeiro_nome = @primeiroNome, sobrenome = @sobrenome,
+        sexo = @sexo, idade = @idade, telefone = @telefone, email = @email,
+        papel_familia = @papelFamilia, sacerdocio = @sacerdocio,
+        e_membro = @eMembro, e_adulto = @eAdulto,
+        e_jovem_adulto_solteiro = @eJovemAdultoSolteiro, e_adulto_solteiro = @eAdultoSolteiro,
+        data_nascimento = @dataNascimento
+      WHERE pessoa_uuid = @pessoaUuid
+    `);
+
+    const sincronizar = db.transaction(() => {
+      let familiasNovas = 0, familiasAtualizadas = 0, enderecosAlterados = 0;
+      let membrosNovos = 0, membrosAtualizados = 0;
+
+      for (const familia of Object.values(familias)) {
+        const existente = buscarFamilia.get(familia.householdUuid);
+
+        if (existente) {
+          // Verificar se endereço mudou
+          const enderecoMudou = 
+            existente.endereco_completo !== familia.enderecoCompleto ||
+            existente.endereco_linha1 !== familia.enderecoLinha1;
+
+          atualizarFamilia.run({
+            householdUuid: familia.householdUuid,
+            nomeFamilia: familia.nomeFamilia,
+            enderecoLinha1: familia.enderecoLinha1,
+            enderecoLinha2: familia.enderecoLinha2,
+            enderecoLinha3: familia.enderecoLinha3,
+            enderecoCompleto: familia.enderecoCompleto,
+            ala: familia.ala,
+            telefone: familia.telefone,
+            email: familia.email,
+          });
+          familiasAtualizadas++;
+
+          if (enderecoMudou) {
+            resetarGeocode.run(existente.id);
+            enderecosAlterados++;
+          }
+        } else {
+          inserirFamilia.run({
+            householdUuid: familia.householdUuid,
+            nomeFamilia: familia.nomeFamilia,
+            enderecoLinha1: familia.enderecoLinha1,
+            enderecoLinha2: familia.enderecoLinha2,
+            enderecoLinha3: familia.enderecoLinha3,
+            enderecoCompleto: familia.enderecoCompleto,
+            ala: familia.ala,
+            telefone: familia.telefone,
+            email: familia.email,
+          });
+          familiasNovas++;
+        }
+
+        const row = db.prepare("SELECT id FROM familias WHERE household_uuid = ?").get(familia.householdUuid);
+        if (!row) continue;
+
+        for (const membro of familia.membros) {
+          const membroExistente = buscarMembro.get(membro.pessoaUuid);
+          const dados = { ...membro, familiaId: row.id };
+
+          if (membroExistente) {
+            atualizarMembro.run(dados);
+            membrosAtualizados++;
+          } else {
+            inserirMembro.run(dados);
+            membrosNovos++;
+          }
+        }
+      }
+
+      return { familiasNovas, familiasAtualizadas, enderecosAlterados, membrosNovos, membrosAtualizados };
+    });
+
+    const r = sincronizar();
+    res.json({
+      sucesso: true,
+      familiasNovas: r.familiasNovas,
+      familiasAtualizadas: r.familiasAtualizadas,
+      enderecosAlterados: r.enderecosAlterados,
+      membrosNovos: r.membrosNovos,
+      membrosAtualizados: r.membrosAtualizados,
+      mensagem: `Sincronizado! ${r.familiasNovas} famílias novas, ${r.familiasAtualizadas} atualizadas (${r.enderecosAlterados} endereços alterados). ${r.membrosNovos} membros novos, ${r.membrosAtualizados} atualizados.`,
+    });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// ========================
+// RESETAR TODOS OS DADOS
+// ========================
+
+app.post("/api/resetar", (req, res) => {
+  try {
+    db.exec("DELETE FROM visitas");
+    db.exec("DELETE FROM membros");
+    db.exec("DELETE FROM familias");
+    res.json({ sucesso: true, mensagem: "Todos os dados foram apagados." });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// ========================
+// REGEOCODIFICAR - resetar coordenadas para re-geocodificar
+// ========================
+
+app.post("/api/regeocodificar", (req, res) => {
+  const { modo } = req.body; // 'todos', 'cep', 'falhou'
+
+  try {
+    let affected = 0;
+    if (modo === "todos") {
+      const r = db.prepare("UPDATE familias SET latitude = NULL, longitude = NULL, geocode_fonte = NULL WHERE endereco_completo != ''").run();
+      affected = r.changes;
+    } else if (modo === "cep") {
+      // Resetar só os que ficaram como CEP (não refinados)
+      const r = db.prepare("UPDATE familias SET geocode_fonte = 'cep' WHERE geocode_fonte IN ('nominatim', 'nominatim_falhou')").run();
+      affected = r.changes;
+    } else if (modo === "falhou") {
+      // Resetar só os que falharam no Nominatim para tentar de novo
+      const r = db.prepare("UPDATE familias SET geocode_fonte = 'cep' WHERE geocode_fonte = 'nominatim_falhou'").run();
+      affected = r.changes;
+    } else {
+      return res.status(400).json({ erro: "Modo inválido. Use: todos, cep, falhou" });
+    }
+
+    res.json({ sucesso: true, afetados: affected, mensagem: `${affected} famílias marcadas para regeocodificação.` });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// ========================
+// ESTATÍSTICAS DE GEOCODIFICAÇÃO
+// ========================
+
+app.get("/api/geocode-stats", (req, res) => {
+  try {
+    const stats = db.prepare(`
+      SELECT 
+        geocode_fonte,
+        COUNT(*) as total
+      FROM familias 
+      GROUP BY geocode_fonte
+    `).all();
+
+    const total = db.prepare("SELECT COUNT(*) as n FROM familias").get().n;
+    const semEndereco = db.prepare("SELECT COUNT(*) as n FROM familias WHERE endereco_completo = '' OR endereco_completo IS NULL").get().n;
+
+    res.json({ stats, total, semEndereco });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 // Verificar se tem dados importados
 app.get("/api/tem-dados", (req, res) => {
   const count = db.prepare("SELECT COUNT(*) as n FROM familias").get().n;
@@ -368,7 +608,7 @@ app.get("/api/familias/:id", (req, res) => {
   }
 });
 
-// PUT atualizar família (status, aceita_visitas, interesse, coordenadas, observações)
+// PUT atualizar família (status, aceita_visitas, interesse, coordenadas, endereço, observações)
 app.put("/api/familias/:id", (req, res) => {
   const {
     status,
@@ -378,6 +618,10 @@ app.put("/api/familias/:id", (req, res) => {
     latitude,
     longitude,
     geocode_fonte,
+    endereco_linha1,
+    endereco_linha2,
+    endereco_linha3,
+    endereco_completo,
   } = req.body;
 
   try {
@@ -411,6 +655,36 @@ app.put("/api/familias/:id", (req, res) => {
     if (geocode_fonte !== undefined) {
       sets.push("geocode_fonte = ?");
       params.push(geocode_fonte);
+    }
+    // Edição de endereço
+    const enderecoEditado =
+      endereco_linha1 !== undefined ||
+      endereco_linha2 !== undefined ||
+      endereco_linha3 !== undefined ||
+      endereco_completo !== undefined;
+
+    if (endereco_linha1 !== undefined) {
+      sets.push("endereco_linha1 = ?");
+      params.push(endereco_linha1);
+    }
+    if (endereco_linha2 !== undefined) {
+      sets.push("endereco_linha2 = ?");
+      params.push(endereco_linha2);
+    }
+    if (endereco_linha3 !== undefined) {
+      sets.push("endereco_linha3 = ?");
+      params.push(endereco_linha3);
+    }
+    if (endereco_completo !== undefined) {
+      sets.push("endereco_completo = ?");
+      params.push(endereco_completo);
+    }
+    if (enderecoEditado) {
+      sets.push("endereco_editado = 1");
+      // Resetar geocode para re-geocodificar com novo endereço
+      sets.push("latitude = NULL");
+      sets.push("longitude = NULL");
+      sets.push("geocode_fonte = NULL");
     }
 
     if (sets.length === 0) {
@@ -604,7 +878,7 @@ app.post("/api/geocodificar/:id", async (req, res) => {
   }
 
   try {
-    const fonte = geocode_fonte || 'manual';
+    const fonte = geocode_fonte || "manual";
     db.prepare(
       "UPDATE familias SET latitude = ?, longitude = ?, geocode_fonte = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?",
     ).run(latitude, longitude, fonte, req.params.id);
@@ -614,9 +888,45 @@ app.post("/api/geocodificar/:id", async (req, res) => {
   }
 });
 
+// ========================
+// RELATÓRIO (famílias com membros)
+// ========================
+
+app.get("/api/relatorio", (req, res) => {
+  try {
+    const familias = db.prepare(`
+      SELECT f.*,
+        COUNT(m.id) as total_membros,
+        (SELECT COUNT(*) FROM visitas v WHERE v.familia_id = f.id) as total_visitas,
+        (SELECT MAX(v.data_visita) FROM visitas v WHERE v.familia_id = f.id) as ultima_visita
+      FROM familias f
+      LEFT JOIN membros m ON m.familia_id = f.id
+      GROUP BY f.id
+      ORDER BY f.nome_familia
+    `).all();
+
+    const getMembros = db.prepare(
+      "SELECT * FROM membros WHERE familia_id = ? ORDER BY papel_familia, primeiro_nome"
+    );
+    const getUltimaVisita = db.prepare(
+      "SELECT * FROM visitas WHERE familia_id = ? ORDER BY data_visita DESC LIMIT 1"
+    );
+
+    const resultado = familias.map((f) => ({
+      ...f,
+      membros: getMembros.all(f.id),
+      ultimaVisitaInfo: getUltimaVisita.get(f.id) || null,
+    }));
+
+    res.json(resultado);
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 // Fallback to index.html for SPA
 app.get("/{*path}", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 app.listen(PORT, () => {

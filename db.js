@@ -100,8 +100,26 @@ try {
   if (!temFonte) {
     db.exec(`ALTER TABLE familias ADD COLUMN geocode_fonte TEXT DEFAULT NULL`);
     // Marcar coordenadas existentes como 'cep' (presumido) para que sejam refinadas
-    db.exec(`UPDATE familias SET geocode_fonte = 'cep' WHERE latitude IS NOT NULL AND geocode_fonte IS NULL`);
+    db.exec(
+      `UPDATE familias SET geocode_fonte = 'cep' WHERE latitude IS NOT NULL AND geocode_fonte IS NULL`,
+    );
     console.log("Migração: coluna geocode_fonte adicionada.");
+  }
+} catch (e) {
+  // Coluna já existe ou tabela nova
+}
+
+// ========================
+// MIGRAÇÃO: adicionar coluna endereco_editado
+// ========================
+try {
+  const cols2 = db.pragma("table_info(familias)");
+  const temEditado = cols2.some((c) => c.name === "endereco_editado");
+  if (!temEditado) {
+    db.exec(
+      `ALTER TABLE familias ADD COLUMN endereco_editado INTEGER DEFAULT 0`,
+    );
+    console.log("Migração: coluna endereco_editado adicionada.");
   }
 } catch (e) {
   // Coluna já existe ou tabela nova

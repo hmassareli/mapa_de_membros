@@ -98,50 +98,41 @@ function encerrarSessao(token) {
 // ================================
 
 function authMiddleware(req, res, next) {
-  // Rotas públicas (login, setup, assets estáticos)
+  // Non-API routes: pass through (SPA handles auth)
+  if (!req.path.startsWith("/api/")) return next();
+
+  // Rotas públicas da API
   const publicPaths = [
     "/api/auth/login",
     "/api/auth/setup",
     "/api/auth/status",
-    "/login.html",
-    "/setup.html",
   ];
   if (publicPaths.some((p) => req.path === p)) return next();
-
-  // Assets estáticos (css, js, fontes, imagens)
-  if (/\.(css|js|png|jpg|svg|ico|woff|woff2|ttf)$/.test(req.path))
-    return next();
 
   // Verificar cookie de sessão
   const token = parseCookie(req.headers.cookie || "", "session");
   const sessao = validarSessao(token);
 
   if (!sessao) {
-    // API retorna 401, páginas redirecionam
-    if (req.path.startsWith("/api/")) {
-      return res.status(401).json({ erro: "Não autenticado" });
-    }
-    return res.redirect("/login.html");
+    return res.status(401).json({ erro: "Não autenticado" });
   }
 
   req.usuario = sessao;
   next();
 }
 
-// Middleware que redireciona para /setup.html se não tem nenhum usuário ainda
+// Middleware que verifica se o sistema está configurado (apenas para API)
 function setupMiddleware(req, res, next) {
-  const publicSetup = ["/api/auth/setup", "/api/auth/status", "/setup.html"];
+  // Non-API routes: pass through (SPA handles setup check)
+  if (!req.path.startsWith("/api/")) return next();
+
+  const publicSetup = ["/api/auth/setup", "/api/auth/status"];
   if (publicSetup.some((p) => req.path === p)) return next();
-  if (/\.(css|js|png|jpg|svg|ico|woff|woff2|ttf)$/.test(req.path))
-    return next();
 
   if (!temUsuarios()) {
-    if (req.path.startsWith("/api/")) {
-      return res
-        .status(403)
-        .json({ erro: "Sistema não configurado", setup: true });
-    }
-    return res.redirect("/setup.html");
+    return res
+      .status(403)
+      .json({ erro: "Sistema não configurado", setup: true });
   }
   next();
 }

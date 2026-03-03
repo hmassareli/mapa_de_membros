@@ -167,6 +167,13 @@
     <div class="fab-group">
       <button
         class="fab fab-secondary"
+        id="btnSync"
+        title="Sincronização e Configurações"
+      >
+        ⚙️
+      </button>
+      <button
+        class="fab fab-secondary"
         id="btnSemCoord"
         title="Ver famílias sem coordenadas"
       >
@@ -175,6 +182,17 @@
       <button class="fab" id="btnPinMode" title="Marcar localização no mapa">
         📍
       </button>
+    </div>
+
+    <!-- Sync/Settings Panel -->
+    <div class="sync-panel" id="syncPanel" style="display: none">
+      <div class="sync-header">
+        <h4>⚙️ Sincronização e Dados</h4>
+        <button class="close-btn" id="closeSyncPanel">&times;</button>
+      </div>
+      <div class="sync-content" id="syncContent">
+        <!-- Content loaded dynamically by app.js -->
+      </div>
     </div>
 
     <!-- Pin placement mode banner -->
