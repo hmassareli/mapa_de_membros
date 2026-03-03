@@ -3,3 +3,5 @@ membros.db
 *.db-journal
 *.db-wal
 *.db-shm
+members.json
+dist/

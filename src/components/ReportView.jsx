@@ -1,105 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useReactToPrint } from "react-to-print";
 import { api } from "../lib/api";
 import HouseholdCard from "./HouseholdCard";
-
-function gerarPdfAlteracoes(reportData) {
-  import("jspdf").then(({ jsPDF }) => {
-    import("jspdf-autotable").then(() => {
-      const editadas = reportData.filter((f) => f.endereco_editado);
-      if (editadas.length === 0) {
-        alert("Nenhuma família com endereço editado para exportar.");
-        return;
-      }
-
-      const doc = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-      const pageW = doc.internal.pageSize.getWidth();
-      const margin = 14;
-
-      // Header
-      doc.setFontSize(16);
-      doc.setFont("helvetica", "bold");
-      doc.text("Relatório de Alterações de Endereço", pageW / 2, 20, {
-        align: "center",
-      });
-
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      const dataHoje = new Date().toLocaleDateString("pt-BR");
-      doc.text(
-        `Gerado em: ${dataHoje}  •  Total: ${editadas.length} família(s)`,
-        pageW / 2,
-        28,
-        { align: "center" },
-      );
-
-      // Table
-      const rows = editadas.map((f) => {
-        const membros = (f.membros || [])
-          .map((m) => m.primeiro_nome || m.nome_completo)
-          .join(", ");
-        const telefones = [
-          f.telefone,
-          ...(f.membros || []).map((m) => m.telefone).filter(Boolean),
-        ]
-          .filter(Boolean)
-          .filter((v, i, arr) => arr.indexOf(v) === i)
-          .join(", ");
-        return [
-          f.nome_familia,
-          [f.endereco_linha1, f.endereco_linha2, f.endereco_linha3]
-            .filter(Boolean)
-            .join("\n"),
-          telefones || "—",
-          membros || "—",
-        ];
-      });
-
-      doc.autoTable({
-        startY: 34,
-        margin: { left: margin, right: margin },
-        head: [["Família", "Endereço Atualizado", "Telefone(s)", "Membros"]],
-        body: rows,
-        styles: { fontSize: 8, cellPadding: 3, overflow: "linebreak" },
-        headStyles: {
-          fillColor: [59, 130, 246],
-          textColor: 255,
-          fontStyle: "bold",
-          fontSize: 9,
-        },
-        columnStyles: {
-          0: { cellWidth: 30, fontStyle: "bold" },
-          1: { cellWidth: 55 },
-          2: { cellWidth: 35 },
-          3: { cellWidth: "auto" },
-        },
-        alternateRowStyles: { fillColor: [245, 247, 250] },
-        didDrawPage: (data) => {
-          // Footer
-          const pageCount = doc.internal.getNumberOfPages();
-          doc.setFontSize(8);
-          doc.setTextColor(150);
-          doc.text(
-            `Página ${data.pageNumber} de ${pageCount}`,
-            pageW / 2,
-            doc.internal.pageSize.getHeight() - 8,
-            { align: "center" },
-          );
-        },
-      });
-
-      doc.save(`alteracoes_endereco_${dataHoje.replace(/\//g, "-")}.pdf`);
-    });
-  });
-}
+import PrintableReport from "./PrintableReport";
 
 export default function ReportView({ familias, filters, onSelectFamily }) {
   const [reportData, setReportData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState("nome"); // nome | status | visita
+  const [sortBy, setSortBy] = useState("nome");
+  const printRef = useRef(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `alteracoes_endereco_${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}`,
+  });
 
   useEffect(() => {
     loadReport();
@@ -156,22 +70,22 @@ export default function ReportView({ familias, filters, onSelectFamily }) {
   const totalEditadas = reportData.filter((f) => f.endereco_editado).length;
 
   return (
-    <div className="report-view">
-      <div className="report-toolbar">
-        <h3>📋 Relatório de Famílias ({filtered.length})</h3>
-        <div className="report-actions">
+    <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h3 className="text-lg font-bold text-gray-800">📋 Relatório de Famílias ({filtered.length})</h3>
+        <div className="flex items-center gap-3 flex-wrap">
           {totalEditadas > 0 && (
             <button
-              className="btn-export-pdf"
-              onClick={() => gerarPdfAlteracoes(reportData)}
-              title="Exportar endereços editados em PDF"
+              className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition cursor-pointer flex items-center gap-1"
+              onClick={() => handlePrint()}
+              title="Imprimir/salvar PDF com endereços editados"
             >
-              📄 Exportar Alterações ({totalEditadas})
+              🖨️ Imprimir Alterações ({totalEditadas})
             </button>
           )}
-          <div className="report-sort">
-            <label>Ordenar:</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <div className="flex items-center gap-1.5 text-sm">
+            <label className="text-xs text-gray-500">Ordenar:</label>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-2 py-1 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
               <option value="nome">Nome</option>
               <option value="status">Status</option>
               <option value="visita">Última Visita</option>
@@ -181,13 +95,13 @@ export default function ReportView({ familias, filters, onSelectFamily }) {
       </div>
 
       {loading ? (
-        <div className="report-loading">Carregando relatório...</div>
+        <div className="text-center py-12 text-gray-400">Carregando relatório...</div>
       ) : filtered.length === 0 ? (
-        <div className="report-empty">
+        <div className="text-center py-12 text-gray-400">
           Nenhuma família encontrada com os filtros aplicados.
         </div>
       ) : (
-        <div className="report-grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {filtered.map((f) => (
             <HouseholdCard
               key={f.id}
@@ -197,6 +111,8 @@ export default function ReportView({ familias, filters, onSelectFamily }) {
           ))}
         </div>
       )}
+
+      <PrintableReport ref={printRef} familias={reportData} />
     </div>
   );
 }

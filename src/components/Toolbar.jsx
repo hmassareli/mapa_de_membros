@@ -137,10 +137,10 @@ export default function Toolbar({
   const { matches = [], membros = [] } = dropdownItems || {};
 
   return (
-    <div className="toolbar">
-      <div className="search-box" ref={dropdownRef}>
+    <div className="flex flex-wrap items-center gap-3 px-4 py-2 border-b border-primary z-10" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}>
+      <div className="relative flex-1 min-w-50" ref={dropdownRef}>
         <svg
-          className="search-icon"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -157,34 +157,35 @@ export default function Toolbar({
           onKeyDown={handleKeyDown}
           placeholder="Buscar família ou endereço..."
           autoComplete="off"
+          className="w-full pl-9 pr-4 py-2 border border-white/20 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
         />
         {dropdownItems && (
-          <div className="search-dropdown visible">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-200 max-h-80 overflow-y-auto z-50">
             {matches.length > 0 && (
               <>
-                <div className="search-section-label">Famílias encontradas</div>
+                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Famílias encontradas</div>
                 {matches.map((f, i) => {
                   const color = STATUS_COLORS[f.status] || "#6b7280";
                   const label = STATUS_LABELS_SHORT[f.status] || f.status;
                   return (
                     <div
                       key={f.id}
-                      className={`search-item ${activeIdx === i ? "active" : ""}`}
+                      className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition hover:bg-blue-50 ${activeIdx === i ? "bg-blue-50" : ""}`}
                       onClick={() => {
                         onSelectFamily(f.id);
                         setDropdownItems(null);
                       }}
                     >
-                      <div className="search-item-icon familia">👤</div>
-                      <div className="search-item-info">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm shrink-0">👤</div>
+                      <div className="flex-1 min-w-0">
                         <div
-                          className="search-item-title"
+                          className="text-sm font-medium text-gray-800 truncate"
                           dangerouslySetInnerHTML={{
                             __html: highlightMatch(f.nome_familia, query),
                           }}
                         />
                         <div
-                          className="search-item-sub"
+                          className="text-xs text-gray-400 truncate"
                           dangerouslySetInnerHTML={{
                             __html:
                               highlightMatch(
@@ -195,7 +196,7 @@ export default function Toolbar({
                         />
                       </div>
                       <span
-                        className="search-item-badge"
+                        className="text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
                         style={{ background: `${color}20`, color }}
                       >
                         {label}
@@ -207,25 +208,25 @@ export default function Toolbar({
             )}
             {membros.length > 0 && (
               <>
-                <div className="search-section-label">Membros encontrados</div>
+                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Membros encontrados</div>
                 {membros.map((m, i) => (
                   <div
                     key={m.familia_id + "-" + m.nome_completo}
-                    className={`search-item ${activeIdx === matches.length + i ? "active" : ""}`}
+                    className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition hover:bg-blue-50 ${activeIdx === matches.length + i ? "bg-blue-50" : ""}`}
                     onClick={() => {
                       onSelectFamily(m.familia_id);
                       setDropdownItems(null);
                     }}
                   >
-                    <div className="search-item-icon familia">👥</div>
-                    <div className="search-item-info">
+                    <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm shrink-0">👥</div>
+                    <div className="flex-1 min-w-0">
                       <div
-                        className="search-item-title"
+                        className="text-sm font-medium text-gray-800 truncate"
                         dangerouslySetInnerHTML={{
                           __html: highlightMatch(m.nome_completo, query),
                         }}
                       />
-                      <div className="search-item-sub">
+                      <div className="text-xs text-gray-400 truncate">
                         Família {m.nome_familia} —{" "}
                         {m.endereco_linha1 || "Sem endereço"}
                       </div>
@@ -234,26 +235,26 @@ export default function Toolbar({
                 ))}
               </>
             )}
-            <div className="search-section-label">Buscar no mapa</div>
+            <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Buscar no mapa</div>
             <div
-              className={`search-item ${activeIdx === matches.length + membros.length ? "active" : ""}`}
+              className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition hover:bg-blue-50 ${activeIdx === matches.length + membros.length ? "bg-blue-50" : ""}`}
               onClick={() => {
                 geocodeAndZoom(query);
                 setDropdownItems(null);
               }}
             >
-              <div className="search-item-icon zoom">🔍</div>
-              <div className="search-item-info">
-                <div className="search-item-title">
+              <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-sm shrink-0">🔍</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-gray-800">
                   Ir para &quot;{query}&quot; no mapa
                 </div>
-                <div className="search-item-sub">
+                <div className="text-xs text-gray-400">
                   Buscar endereço e dar zoom
                 </div>
               </div>
             </div>
             {matches.length === 0 && membros.length === 0 && (
-              <div className="search-no-results">
+              <div className="px-3 py-4 text-sm text-gray-400 text-center">
                 Nenhum resultado para &quot;{query}&quot;
               </div>
             )}
@@ -261,12 +262,13 @@ export default function Toolbar({
         )}
       </div>
 
-      <div className="filters">
+      <div className="flex items-center gap-2 flex-wrap">
         <select
           value={filters.status}
           onChange={(e) =>
             onFiltersChange({ ...filters, status: e.target.value })
           }
+          className="px-3 py-2 border border-white/20 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 cursor-pointer"
         >
           <option value="">Todos os Status</option>
           <option value="ativo">✅ Ativo</option>
@@ -280,6 +282,7 @@ export default function Toolbar({
           onChange={(e) =>
             onFiltersChange({ ...filters, aceita_visitas: e.target.value })
           }
+          className="px-3 py-2 border border-white/20 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 cursor-pointer"
         >
           <option value="">Aceita Visitas</option>
           <option value="sim">✅ Sim</option>
@@ -291,6 +294,7 @@ export default function Toolbar({
           onChange={(e) =>
             onFiltersChange({ ...filters, interesse_retorno: e.target.value })
           }
+          className="px-3 py-2 border border-white/20 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 cursor-pointer"
         >
           <option value="">Interesse em Retornar</option>
           <option value="sim">✅ Sim</option>
@@ -299,7 +303,7 @@ export default function Toolbar({
           <option value="nao_contatado">🔘 Não Contatado</option>
         </select>
         <button
-          className="btn btn-secondary"
+          className="px-3 py-2 border border-white/20 rounded-lg text-sm text-white hover:bg-white/15 transition cursor-pointer"
           onClick={() => {
             onFiltersChange({
               status: "",

@@ -151,74 +151,86 @@ export default function SetupPage() {
     : 0;
 
   return (
-    <div className="auth-page">
-      <div className="setup-card">
-        <div className="setup-header">
-          <div className="logo">🗺️</div>
-          <h1>Mapa de Membros</h1>
-          <p>Configure sua ala para começar</p>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #e8eef5 0%, #d5deec 100%)' }}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+        <div className="text-white p-8 text-center" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}>
+          <div className="text-4xl mb-2">🗺️</div>
+          <h1 className="text-2xl font-bold mb-1">Mapa de Membros</h1>
+          <p className="text-blue-100 text-sm">Configure sua ala para começar</p>
         </div>
 
-        <div className="setup-body">
-          <div className="step-indicator">
+        <div className="p-8">
+          <div className="flex justify-center gap-3 mb-6">
             {[1, 2, 3, 4].map((n) => (
               <div
                 key={n}
-                className={`step-dot ${n === step ? "active" : ""} ${n < step ? "done" : ""}`}
+                className={`w-3 h-3 rounded-full transition-all ${n === step ? "bg-blue-600 scale-125" : ""} ${n < step ? "bg-green-500" : ""} ${n > step ? "bg-gray-200" : ""}`}
               />
             ))}
           </div>
 
-          {error && <div className="error-msg visible">{error}</div>}
+          {error && (
+            <div className="bg-red-50 text-red-600 border border-red-200 rounded-lg p-3 mb-4 text-sm text-center">
+              {error}
+            </div>
+          )}
 
           {/* STEP 1 */}
           {step === 1 && (
             <div>
-              <h2>1. Crie o acesso da ala</h2>
-              <p className="step-desc">
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">1. Crie o acesso da ala</h2>
+              <p className="text-gray-500 text-sm mb-4">
                 Este login será usado por todos que precisarem acessar o mapa.
               </p>
-              <div className="form-group">
-                <label>Nome da Ala</label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Ala</label>
                 <input
                   value={ala}
                   onChange={(e) => setAla(e.target.value)}
                   placeholder="Ex: Ala Parque Industrial"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 />
               </div>
-              <div className="form-group">
-                <label>Login</label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Login</label>
                 <input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Ex: parqueindustrial"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 />
               </div>
-              <div className="form-group">
-                <label>Senha</label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
                 <input
                   type="password"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="Crie uma senha"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 />
               </div>
-              <div className="form-group">
-                <label>Confirmar Senha</label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar Senha</label>
                 <input
                   type="password"
                   value={senha2}
                   onChange={(e) => setSenha2(e.target.value)}
                   placeholder="Repita a senha"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 />
               </div>
-              <div className="btn-row">
-                <button className="btn btn-auth-primary" onClick={criarConta}>
+              <div className="flex gap-3">
+                <button
+                  className="flex-1 py-3 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}
+                  onClick={criarConta}
+                >
                   Próximo →
                 </button>
               </div>
-              <div className="auth-footer">
-                <a href="/login">Já tem conta? Faça login</a>
+              <div className="text-center pt-6 border-t border-gray-100 mt-6 text-sm text-gray-500">
+                <a href="/login" className="text-blue-600 hover:underline font-medium">Já tem conta? Faça login</a>
               </div>
             </div>
           )}
@@ -226,31 +238,31 @@ export default function SetupPage() {
           {/* STEP 2 */}
           {step === 2 && (
             <div>
-              <h2>2. Importe o diretório</h2>
-              <p className="step-desc">
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">2. Importe o diretório</h2>
+              <p className="text-gray-500 text-sm mb-4">
                 Faça upload do arquivo <strong>members.json</strong> exportado
                 do diretório da Igreja.
               </p>
               <div
-                className={`upload-area ${jsonData ? "has-file" : ""}`}
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${jsonData ? "border-green-400 bg-green-50" : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"}`}
                 onClick={() => fileRef.current?.click()}
                 onDragOver={(e) => {
                   e.preventDefault();
-                  e.currentTarget.classList.add("dragover");
+                  e.currentTarget.classList.add("border-blue-400", "bg-blue-50");
                 }}
-                onDragLeave={(e) =>
-                  e.currentTarget.classList.remove("dragover")
-                }
+                onDragLeave={(e) => {
+                  e.currentTarget.classList.remove("border-blue-400", "bg-blue-50");
+                }}
                 onDrop={handleDrop}
               >
-                <div className="icon">{jsonData ? "✅" : "📁"}</div>
-                <div className="text">
+                <div className="text-3xl mb-2">{jsonData ? "✅" : "📁"}</div>
+                <div className="text-sm text-gray-600">
                   {jsonData
                     ? "Arquivo carregado!"
                     : "Clique ou arraste o arquivo JSON aqui"}
                 </div>
                 {fileName && (
-                  <div className="filename">
+                  <div className="text-xs text-gray-400 mt-1">
                     {fileName} ({recordCount} registros)
                   </div>
                 )}
@@ -264,30 +276,32 @@ export default function SetupPage() {
                   }
                 />
               </div>
-              <div className="btn-row">
+              <div className="flex gap-3 mt-4">
                 <button
-                  className="btn btn-auth-secondary"
+                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all cursor-pointer"
                   onClick={() => goStep(1)}
                 >
                   ← Voltar
                 </button>
                 <button
-                  className="btn btn-auth-primary"
+                  className="flex-1 py-3 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                  style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}
                   onClick={importarDados}
                   disabled={!jsonData || importing}
                 >
                   {importing ? (
                     <>
-                      <span className="spinner" /> Importando...
+                      <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Importando...
                     </>
                   ) : (
                     "Importar Dados"
                   )}
                 </button>
               </div>
-              <div className="auth-footer">
+              <div className="text-center pt-6 border-t border-gray-100 mt-6 text-sm text-gray-500">
                 <a
                   href="#"
+                  className="text-blue-600 hover:underline font-medium"
                   onClick={(e) => {
                     e.preventDefault();
                     goStep(4);
@@ -302,33 +316,33 @@ export default function SetupPage() {
           {/* STEP 3 */}
           {step === 3 && (
             <div>
-              <h2>3. Localizando endereços no mapa</h2>
-              <p className="step-desc">
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">3. Localizando endereços no mapa</h2>
+              <p className="text-gray-500 text-sm mb-4">
                 Buscando coordenadas de cada família...
               </p>
-              <div className="geocode-progress">
-                <div className="progress-bar-container">
-                  <div className="progress-bar" style={{ width: `${pct}%` }} />
+              <div className="space-y-3">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-300" style={{ width: `${pct}%`, background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }} />
                 </div>
-                <div className="progress-stats">
+                <div className="text-sm text-gray-700 text-center font-medium">
                   {geocodeProgress?.current || 0} /{" "}
                   {geocodeProgress?.total || 0} endereços
                 </div>
-                <div className="progress-detail">
-                  <span className="prog-ok">
+                <div className="flex justify-center gap-4 text-sm">
+                  <span className="text-green-600">
                     ✅ {geocodeProgress?.sucesso || 0}
                   </span>
-                  <span className="prog-fail">
+                  <span className="text-red-500">
                     ❌ {geocodeProgress?.falha || 0}
                   </span>
                 </div>
-                <div className="progress-last">
+                <div className="text-xs text-gray-400 text-center truncate">
                   {geocodeProgress?.ultima || "Iniciando..."}
                 </div>
               </div>
-              <div className="btn-row" style={{ marginTop: 16 }}>
+              <div className="flex gap-3" style={{ marginTop: 16 }}>
                 <button
-                  className="btn btn-auth-secondary"
+                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all cursor-pointer"
                   onClick={pularGeocode}
                 >
                   Pular (fazer depois)
@@ -339,21 +353,22 @@ export default function SetupPage() {
 
           {/* STEP 4 */}
           {step === 4 && (
-            <div className="success-box">
-              <div className="icon">✅</div>
-              <div className="count">
+            <div className="text-center py-4">
+              <div className="text-5xl mb-4">✅</div>
+              <div className="text-lg font-semibold text-gray-800 mb-1">
                 {result
                   ? `${result.familias} famílias, ${result.membros} membros`
                   : "Pronto!"}
               </div>
-              <div className="detail">
+              <div className="text-sm text-gray-500 mb-4">
                 {result
                   ? "importados com sucesso!"
                   : "Você pode importar dados depois pelo menu."}
               </div>
-              <div className="btn-row" style={{ marginTop: 24 }}>
+              <div className="flex gap-3" style={{ marginTop: 24 }}>
                 <button
-                  className="btn btn-auth-primary"
+                  className="flex-1 py-3 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}
                   onClick={() => navigate("/")}
                 >
                   Abrir o Mapa 🗺️

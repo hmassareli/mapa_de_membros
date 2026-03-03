@@ -29,7 +29,7 @@ export default function SidePanel({
   const [visitResultado, setVisitResultado] = useState("");
   const [visitNotas, setVisitNotas] = useState("");
 
-  if (!familia) return <div className={`side-panel ${open ? "open" : ""}`} />;
+  if (!familia) return <div className={`fixed top-0 right-0 h-full w-105 max-w-full bg-white shadow-2xl z-1000 transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`} />;
 
   const f = familia;
   const isAtivo = f.status === "ativo";
@@ -121,41 +121,34 @@ export default function SidePanel({
   }
 
   return (
-    <div className={`side-panel ${open ? "open" : ""}`}>
-      <button className="close-btn" onClick={onClose}>
+    <div className={`fixed top-0 right-0 h-full w-105 max-w-full bg-white shadow-2xl z-1000 transition-transform duration-300 overflow-y-auto custom-scrollbar ${open ? "translate-x-0" : "translate-x-full"}`}>
+      <button className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white text-lg cursor-pointer z-10" onClick={onClose}>
         &times;
       </button>
 
       {/* Header */}
-      <div className="familia-header">
-        <h2>Família {f.nome_familia}</h2>
+      <div className="p-5 border-b border-primary" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)' }}>
+        <h2 className="text-lg font-bold text-white mb-2">Família {f.nome_familia}</h2>
         <div
-          className="endereco endereco-clickable"
+          className="text-sm text-blue-100 leading-relaxed cursor-pointer hover:bg-blue-500/30 rounded-lg p-2 -m-2 transition"
           onClick={() => setShowAddressModal(true)}
           title="Clique para editar endereço"
         >
           {f.endereco_editado ? (
-            <span className="modified-tag">✏️ Editado</span>
+            <span className="inline-block bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded font-medium mr-1">✏️ Editado</span>
           ) : null}
           {f.endereco_linha1 || ""}
           <br />
           {f.endereco_linha2 || ""}
           <br />
           {f.endereco_linha3 || ""}
-          <span className="btn-edit-address">✏️</span>
+          <span className="ml-1">✏️</span>
         </div>
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            marginTop: 8,
-          }}
-        >
-          <span className="ala-tag">{f.ala || "Sem ala"}</span>
+        <div className="flex gap-2 items-center mt-2">
+          <span className="text-xs bg-blue-400/30 text-white px-2 py-0.5 rounded-full font-medium">{f.ala || "Sem ala"}</span>
           {modified && (
             <span
-              className="modified-badge"
+              className="text-xs bg-amber-300/30 text-amber-100 px-2 py-0.5 rounded-full font-medium"
               title={`Campos alterados: ${modifiedFields.join(", ")}`}
             >
               ✏️ Modificado
@@ -165,14 +158,15 @@ export default function SidePanel({
       </div>
 
       {/* Status */}
-      <div className="panel-section">
-        <h3>📋 Status</h3>
-        <div className="status-controls">
-          <div className="status-row">
-            <label>Situação:</label>
+      <div className="p-5 border-b border-gray-100">
+        <h3 className="font-semibold text-gray-700 text-sm mb-3">📋 Status</h3>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-500 w-24 shrink-0">Situação:</label>
             <select
               value={f.status}
               onChange={(e) => onStatusChange(e.target.value)}
+              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               <option value="nao_contatado">🔘 Não Contatado</option>
               <option value="ativo">✅ Ativo na Igreja</option>
@@ -182,11 +176,12 @@ export default function SidePanel({
             </select>
           </div>
           {!isAtivo && (
-            <div className="status-row">
-              <label>Aceita Visitas:</label>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-500 w-24 shrink-0">Aceita Visitas:</label>
               <select
                 value={f.aceita_visitas}
                 onChange={(e) => updateField("aceita_visitas", e.target.value)}
+                className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 <option value="nao_contatado">🔘 Não Contatado</option>
                 <option value="sim">✅ Sim</option>
@@ -195,13 +190,14 @@ export default function SidePanel({
             </div>
           )}
           {isInativo && (
-            <div className="status-row">
-              <label>Interesse em Retornar:</label>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-500 w-24 shrink-0">Interesse em Retornar:</label>
               <select
                 value={f.interesse_retorno}
                 onChange={(e) =>
                   updateField("interesse_retorno", e.target.value)
                 }
+                className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 <option value="nao_contatado">🔘 Não Contatado</option>
                 <option value="sim">✅ Sim</option>
@@ -214,35 +210,34 @@ export default function SidePanel({
 
         {/* Coordinates */}
         {!f.latitude || !f.longitude ? (
-          <div className="coord-input-section">
-            <p>⚠️ Sem coordenadas. Cole do Google Maps ou use 📍:</p>
-            <div className="coord-input-row">
+          <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+            <p className="text-xs text-amber-700 mb-2">⚠️ Sem coordenadas. Cole do Google Maps ou use 📍:</p>
+            <div className="flex gap-2">
               <input
                 value={coordInput}
                 onChange={(e) => setCoordInput(e.target.value)}
                 placeholder="-23.2237, -45.9009"
+                className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
-                className="btn btn-primary btn-small"
+                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition cursor-pointer"
                 onClick={saveCoordinates}
               >
                 Salvar
               </button>
             </div>
             <button
-              className="btn btn-success btn-small"
-              style={{ marginTop: 6, width: "100%" }}
+              className="mt-2 w-full px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition cursor-pointer"
               onClick={() => onStartPinMode(f.id)}
             >
               📍 Marcar no Mapa
             </button>
           </div>
         ) : (
-          <div style={{ fontSize: 12, color: "var(--gray-500)", marginTop: 4 }}>
+          <div className="mt-2 text-xs text-gray-400 flex items-center gap-1 flex-wrap">
             📍 {f.latitude.toFixed(6)}, {f.longitude.toFixed(6)}
             <button
-              className="btn btn-small btn-secondary"
-              style={{ marginLeft: 4 }}
+              className="px-2 py-0.5 border border-gray-200 rounded text-[10px] text-gray-500 hover:bg-gray-50 transition cursor-pointer"
               onClick={() => {
                 setCoordInput(`${f.latitude}, ${f.longitude}`);
               }}
@@ -250,8 +245,7 @@ export default function SidePanel({
               Editar
             </button>
             <button
-              className="btn btn-small btn-secondary"
-              style={{ marginLeft: 4 }}
+              className="px-2 py-0.5 border border-gray-200 rounded text-[10px] text-gray-500 hover:bg-gray-50 transition cursor-pointer"
               onClick={() => onStartPinMode(f.id)}
             >
               📍 Reposicionar
@@ -261,10 +255,10 @@ export default function SidePanel({
       </div>
 
       {/* Members */}
-      <div className="panel-section">
-        <h3>👥 Membros da Família ({f.membros?.length || 0})</h3>
+      <div className="p-5 border-b border-gray-100">
+        <h3 className="font-semibold text-gray-700 text-sm mb-3">👥 Membros da Família ({f.membros?.length || 0})</h3>
         {(f.membros || []).map((m) => {
-          const avatarClass = m.sexo === "M" ? "avatar-m" : "avatar-f";
+          const isMale = m.sexo === "M";
           const initials = (m.primeiro_nome || "?")[0].toUpperCase();
           const detalhes = [];
           if (m.papel_familia)
@@ -277,27 +271,27 @@ export default function SidePanel({
           const tel = m.telefone ? m.telefone.replace(/\D/g, "") : "";
 
           return (
-            <div key={m.id} className="membro-card">
-              <div className={`membro-avatar ${avatarClass}`}>{initials}</div>
-              <div className="membro-info">
-                <div className="membro-nome">
+            <div key={m.id} className="flex items-start gap-3 mb-3">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 ${isMale ? "bg-blue-500" : "bg-pink-500"}`}>{initials}</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-gray-800">
                   {m.primeiro_nome} {m.sobrenome}
                 </div>
-                <div className="membro-detalhe">{detalhes.join(" • ")}</div>
+                <div className="text-xs text-gray-400">{detalhes.join(" • ")}</div>
                 {(m.telefone || m.email) && (
-                  <div style={{ marginTop: 3 }}>
+                  <div className="mt-1 flex gap-2 flex-wrap">
                     {tel && (
                       <a
                         href={`https://wa.me/${tel}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="contact-link"
+                        className="text-xs text-green-600 hover:underline"
                       >
                         📱 WhatsApp
                       </a>
                     )}{" "}
                     {m.email && (
-                      <a href={`mailto:${m.email}`} className="contact-link">
+                      <a href={`mailto:${m.email}`} className="text-xs text-blue-600 hover:underline">
                         📧 {m.email}
                       </a>
                     )}
@@ -310,26 +304,29 @@ export default function SidePanel({
       </div>
 
       {/* New Visit */}
-      <div className="panel-section">
-        <h3>➕ Registrar Nova Visita</h3>
-        <div className="form-nova-visita">
-          <div className="form-row">
+      <div className="p-5 border-b border-gray-100">
+        <h3 className="font-semibold text-gray-700 text-sm mb-3">➕ Registrar Nova Visita</h3>
+        <div className="space-y-2">
+          <div className="flex gap-2">
             <input
               type="date"
               value={visitData}
               onChange={(e) => setVisitData(e.target.value)}
+              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <input
               type="text"
               value={visitVisitante}
               onChange={(e) => setVisitVisitante(e.target.value)}
               placeholder="Nome do visitante"
+              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className="form-row">
+          <div className="flex gap-2">
             <select
               value={visitTipo}
               onChange={(e) => setVisitTipo(e.target.value)}
+              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               <option value="visita">🚶 Visita</option>
               <option value="tentativa">🔔 Tentativa</option>
@@ -339,6 +336,7 @@ export default function SidePanel({
             <select
               value={visitResultado}
               onChange={(e) => setVisitResultado(e.target.value)}
+              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               <option value="">Resultado...</option>
               <option value="atendeu">✅ Atendeu</option>
@@ -351,50 +349,45 @@ export default function SidePanel({
             value={visitNotas}
             onChange={(e) => setVisitNotas(e.target.value)}
             placeholder="Notas sobre a visita..."
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y min-h-15"
           />
-          <button className="btn btn-success" onClick={addVisita}>
+          <button className="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition cursor-pointer" onClick={addVisita}>
             Registrar Visita
           </button>
         </div>
       </div>
 
       {/* Visit History */}
-      <div className="panel-section">
-        <h3>📒 Histórico de Visitas ({f.total_visitas || 0})</h3>
+      <div className="p-5 border-b border-gray-100">
+        <h3 className="font-semibold text-gray-700 text-sm mb-3">📒 Histórico de Visitas ({f.total_visitas || 0})</h3>
         {(f.visitas || []).length === 0 ? (
-          <p
-            style={{
-              color: "var(--gray-400)",
-              fontSize: 13,
-              fontStyle: "italic",
-            }}
-          >
+          <p className="text-gray-400 text-[13px] italic">
             Nenhuma visita registrada ainda.
           </p>
         ) : (
           (f.visitas || []).map((v) => (
-            <div key={v.id} className="visita-card">
+            <div key={v.id} className="relative bg-gray-50 rounded-lg p-3 mb-2">
               <button
-                className="visita-delete"
+                className="absolute top-2 right-2 text-gray-300 hover:text-red-500 text-lg cursor-pointer"
                 onClick={() => deleteVisita(v.id)}
                 title="Remover"
               >
                 &times;
               </button>
-              <div className="visita-data">
-                📅 {formatDate(v.data_visita)}
-                <span className="visita-tipo">
+              <div className="flex items-center gap-2 flex-wrap text-sm">
+                <span>📅 {formatDate(v.data_visita)}</span>
+                <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded font-medium">
                   {TIPO_LABELS[v.tipo] || v.tipo}
                 </span>
                 {v.resultado && (
-                  <span className={`visita-resultado resultado-${v.resultado}`}>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${v.resultado === "atendeu" ? "bg-green-100 text-green-700" : v.resultado === "recusou" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"}`}>
                     {RESULTADO_LABELS[v.resultado] || v.resultado}
                   </span>
                 )}
               </div>
-              <div className="visita-visitante">👤 {v.visitante}</div>
+              <div className="text-xs text-gray-500 mt-1">👤 {v.visitante}</div>
               {v.notas && (
-                <div className="visita-notas">&quot;{v.notas}&quot;</div>
+                <div className="text-xs text-gray-400 mt-1 italic">&quot;{v.notas}&quot;</div>
               )}
             </div>
           ))
@@ -402,10 +395,10 @@ export default function SidePanel({
       </div>
 
       {/* Notes */}
-      <div className="panel-section">
-        <h3>📝 Observações</h3>
+      <div className="p-5">
+        <h3 className="font-semibold text-gray-700 text-sm mb-3">📝 Observações</h3>
         <textarea
-          className="obs-textarea"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y min-h-20"
           defaultValue={f.observacoes || ""}
           placeholder="Observações sobre esta família..."
           onBlur={(e) => updateField("observacoes", e.target.value)}

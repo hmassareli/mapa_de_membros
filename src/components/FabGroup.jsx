@@ -12,9 +12,9 @@ export default function FabGroup({
   // On mobile, show a toggle button
   if (isMobile && !expanded) {
     return (
-      <div className="fab-group">
+      <div className="absolute bottom-6 right-4 z-500 flex flex-col gap-2">
         <button
-          className="fab"
+          className="w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg flex items-center justify-center text-xl hover:bg-blue-700 transition cursor-pointer"
           onClick={() => setExpanded(true)}
           title="Mostrar opções"
         >
@@ -25,10 +25,10 @@ export default function FabGroup({
   }
 
   return (
-    <div className="fab-group">
+    <div className="absolute bottom-6 right-4 z-500 flex flex-col gap-2">
       {isMobile && (
         <button
-          className="fab fab-secondary fab-close-mobile"
+          className="w-10 h-10 rounded-full bg-gray-200 text-gray-600 shadow flex items-center justify-center text-sm hover:bg-gray-300 transition cursor-pointer"
           onClick={() => setExpanded(false)}
           title="Esconder opções"
         >
@@ -36,21 +36,21 @@ export default function FabGroup({
         </button>
       )}
       <button
-        className="fab fab-secondary"
+        className="w-10 h-10 rounded-full bg-white text-gray-600 shadow border border-gray-200 flex items-center justify-center text-sm hover:bg-gray-50 transition cursor-pointer"
         onClick={onShowSync}
         title="Sincronização e Configurações"
       >
         ⚙️
       </button>
       <button
-        className="fab fab-secondary"
+        className="w-10 h-10 rounded-full bg-white text-gray-600 shadow border border-gray-200 flex items-center justify-center text-sm hover:bg-gray-50 transition cursor-pointer"
         onClick={onShowNoCoords}
         title="Ver famílias sem coordenadas"
       >
         📋
       </button>
       <button
-        className={`fab ${pinMode ? "active" : ""}`}
+        className={`w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl transition cursor-pointer ${pinMode ? "bg-red-500 text-white ring-4 ring-red-200" : "bg-blue-600 text-white hover:bg-blue-700"}`}
         onClick={onTogglePinMode}
         title="Marcar localização no mapa"
       >

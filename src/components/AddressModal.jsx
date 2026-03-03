@@ -169,20 +169,20 @@ export default function AddressModal({ familia, onClose, onSaved }) {
   const preview = buildAddressLines();
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>✏️ Editar Endereço</h3>
-          <button className="modal-close" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 z-2000 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-[modalSlideIn_0.3s_ease]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-800">✏️ Editar Endereço</h3>
+          <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 text-xl cursor-pointer" onClick={onClose}>
             &times;
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
           {/* CEP first — auto-fills rest */}
-          <div className="addr-field">
-            <label>CEP</label>
-            <div className="addr-cep-row">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">CEP</label>
+            <div className="flex items-center gap-2">
               <input
                 ref={cepRef}
                 type="text"
@@ -190,92 +190,99 @@ export default function AddressModal({ familia, onClose, onSaved }) {
                 onChange={(e) => handleCepChange(e.target.value)}
                 placeholder="12345-678"
                 maxLength={9}
+                className="w-40 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               />
-              {loadingCep && <span className="addr-cep-spinner" />}
+              {loadingCep && <span className="inline-block w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />}
             </div>
           </div>
 
-          <div className="addr-row">
-            <div className="addr-field addr-field-grow">
-              <label>Rua / Logradouro</label>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-500 mb-1">Rua / Logradouro</label>
               <input
                 type="text"
                 value={rua}
                 onChange={(e) => setRua(e.target.value)}
                 placeholder="Rua Exemplo"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               />
             </div>
-            <div className="addr-field addr-field-small">
-              <label>Nº</label>
+            <div className="w-20">
+              <label className="block text-xs font-medium text-gray-500 mb-1">Nº</label>
               <input
                 type="text"
                 value={numero}
                 onChange={(e) => setNumero(e.target.value)}
                 placeholder="123"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               />
             </div>
           </div>
 
-          <div className="addr-row">
-            <div className="addr-field addr-field-grow">
-              <label>Bairro</label>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-500 mb-1">Bairro</label>
               <input
                 type="text"
                 value={bairro}
                 onChange={(e) => setBairro(e.target.value)}
                 placeholder="Bairro"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               />
             </div>
-            <div className="addr-field addr-field-grow">
-              <label>Complemento</label>
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-500 mb-1">Complemento</label>
               <input
                 type="text"
                 value={complemento}
                 onChange={(e) => setComplemento(e.target.value)}
                 placeholder="Apto 12, Bloco B"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               />
             </div>
           </div>
 
-          <div className="addr-row">
-            <div className="addr-field addr-field-grow">
-              <label>Cidade</label>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-500 mb-1">Cidade</label>
               <input
                 type="text"
                 value={cidade}
                 onChange={(e) => setCidade(e.target.value)}
                 placeholder="São Paulo"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               />
             </div>
-            <div className="addr-field addr-field-small">
-              <label>UF</label>
+            <div className="w-20">
+              <label className="block text-xs font-medium text-gray-500 mb-1">UF</label>
               <input
                 type="text"
                 value={estado}
                 onChange={(e) => setEstado(e.target.value.toUpperCase())}
                 placeholder="SP"
                 maxLength={2}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               />
             </div>
           </div>
 
           {/* Preview */}
-          <div className="addr-preview">
-            <span className="addr-preview-label">Pré-visualização</span>
-            <div className="addr-preview-lines">
-              <div>{preview.linha1 || <em>—</em>}</div>
-              <div>{preview.linha2 || <em>—</em>}</div>
-              <div>{preview.linha3 || <em>—</em>}</div>
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+            <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Pré-visualização</span>
+            <div className="mt-1 text-sm text-gray-700 leading-relaxed">
+              <div>{preview.linha1 || <em className="text-gray-300">—</em>}</div>
+              <div>{preview.linha2 || <em className="text-gray-300">—</em>}</div>
+              <div>{preview.linha3 || <em className="text-gray-300">—</em>}</div>
             </div>
           </div>
         </div>
 
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
+          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition cursor-pointer" onClick={onClose}>
             Cancelar
           </button>
           <button
-            className="btn btn-primary"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60 cursor-pointer"
             onClick={handleSave}
             disabled={saving}
           >

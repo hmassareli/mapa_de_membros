@@ -104,52 +104,52 @@ export default function SyncPanel({
   const g = geocodeInfo;
 
   return (
-    <div className="sync-panel" style={{ display: "block" }}>
-      <div className="sync-header">
-        <h4>⚙️ Sincronização e Dados</h4>
-        <button className="close-btn" onClick={onClose}>
+    <div className="absolute bottom-20 right-4 z-500 w-96 max-w-[calc(100vw-2rem)] max-h-[80vh] bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden flex flex-col">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <h4 className="font-semibold text-sm text-gray-700">⚙️ Sincronização e Dados</h4>
+        <button className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 text-sm cursor-pointer" onClick={onClose}>
           &times;
         </button>
       </div>
-      <div className="sync-content">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5">
         {loading ? (
-          <p style={{ textAlign: "center", color: "var(--gray-400)" }}>
+          <p className="text-center text-gray-400 text-sm">
             Carregando...
           </p>
         ) : (
           <>
-            <div className="sync-section">
-              <h5>📍 Coordenadas</h5>
-              <div className="sync-stats">
-                <div className="sync-stat">
-                  <span className="stat-val">{g?.totalNoMapa || 0}</span>
-                  <span className="stat-lbl">no mapa</span>
+            <div>
+              <h5 className="font-semibold text-sm text-gray-700 mb-2">📍 Coordenadas</h5>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="text-center p-2 bg-gray-50 rounded-lg">
+                  <span className="block text-lg font-bold text-blue-600">{g?.totalNoMapa || 0}</span>
+                  <span className="block text-[10px] text-gray-400">no mapa</span>
                 </div>
-                <div className="sync-stat">
-                  <span className="stat-val">{g?.totalSemCoord || 0}</span>
-                  <span className="stat-lbl">sem coordenada</span>
+                <div className="text-center p-2 bg-gray-50 rounded-lg">
+                  <span className="block text-lg font-bold text-red-500">{g?.totalSemCoord || 0}</span>
+                  <span className="block text-[10px] text-gray-400">sem coordenada</span>
                 </div>
-                <div className="sync-stat">
-                  <span className="stat-val">{g?.totalCep || 0}</span>
-                  <span className="stat-lbl">via CEP</span>
+                <div className="text-center p-2 bg-gray-50 rounded-lg">
+                  <span className="block text-lg font-bold text-green-600">{g?.totalCep || 0}</span>
+                  <span className="block text-[10px] text-gray-400">via CEP</span>
                 </div>
-                <div className="sync-stat">
-                  <span className="stat-val">{g?.totalNominatim || 0}</span>
-                  <span className="stat-lbl">via Nominatim</span>
+                <div className="text-center p-2 bg-gray-50 rounded-lg">
+                  <span className="block text-lg font-bold text-indigo-600">{g?.totalNominatim || 0}</span>
+                  <span className="block text-[10px] text-gray-400">via Nominatim</span>
                 </div>
-                <div className="sync-stat">
-                  <span className="stat-val">{g?.totalManual || 0}</span>
-                  <span className="stat-lbl">manual</span>
+                <div className="text-center p-2 bg-gray-50 rounded-lg">
+                  <span className="block text-lg font-bold text-amber-600">{g?.totalManual || 0}</span>
+                  <span className="block text-[10px] text-gray-400">manual</span>
                 </div>
-                <div className="sync-stat">
-                  <span className="stat-val">{g?.totalFalhou || 0}</span>
-                  <span className="stat-lbl">Nominatim falhou</span>
+                <div className="text-center p-2 bg-gray-50 rounded-lg">
+                  <span className="block text-lg font-bold text-gray-500">{g?.totalFalhou || 0}</span>
+                  <span className="block text-[10px] text-gray-400">Nominatim falhou</span>
                 </div>
               </div>
-              <div className="sync-btn-group">
+              <div className="space-y-1.5">
                 {(g?.totalCep || 0) > 0 && (
                   <button
-                    className="btn btn-secondary"
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-700 hover:bg-gray-50 transition cursor-pointer text-left"
                     onClick={() => {
                       onClose();
                       onStartRefinamento();
@@ -160,14 +160,14 @@ export default function SyncPanel({
                 )}
                 {(g?.totalFalhou || 0) > 0 && (
                   <button
-                    className="btn btn-secondary"
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-700 hover:bg-gray-50 transition cursor-pointer text-left"
                     onClick={() => regeocodificar("falhou")}
                   >
                     🔁 Retentar {g.totalFalhou} que falharam
                   </button>
                 )}
                 <button
-                  className="btn btn-secondary"
+                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-700 hover:bg-gray-50 transition cursor-pointer text-left"
                   onClick={() => regeocodificar("todos")}
                 >
                   🗺️ Regeocodificar tudo
@@ -175,34 +175,32 @@ export default function SyncPanel({
               </div>
             </div>
 
-            <div className="sync-section">
-              <h5>📤 Atualizar Dados</h5>
-              <p>
+            <div>
+              <h5 className="font-semibold text-sm text-gray-700 mb-2">📤 Atualizar Dados</h5>
+              <p className="text-xs text-gray-500 mb-2">
                 Envie um novo <strong>members.json</strong> para sincronizar.
                 Suas visitas, status e observações são mantidos.
               </p>
-              <label className="sync-upload-area">
+              <label className="block border-2 border-dashed border-gray-200 rounded-lg p-3 text-center text-xs text-gray-500 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition">
                 📁 Clique para enviar members.json
-                <input type="file" accept=".json" onChange={sincronizarJSON} />
+                <input type="file" accept=".json" onChange={sincronizarJSON} className="hidden" />
               </label>
               {syncResult && (
-                <div className={`sync-result ${syncResult.type}`}>
+                <div className={`mt-2 p-2 rounded-lg text-xs ${syncResult.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
                   {syncResult.type === "success" ? "✅" : "❌"}{" "}
                   {syncResult.message}
                 </div>
               )}
             </div>
 
-            <div className="sync-section">
-              <h5>⚠️ Zona de Perigo</h5>
-              <div className="sync-btn-group">
-                <button
-                  className="btn btn-danger-outline"
-                  onClick={resetarDados}
-                >
-                  🗑️ Apagar todos os dados
-                </button>
-              </div>
+            <div>
+              <h5 className="font-semibold text-sm text-red-600 mb-2">⚠️ Zona de Perigo</h5>
+              <button
+                className="w-full px-3 py-1.5 border border-red-300 text-red-600 rounded-lg text-xs hover:bg-red-50 transition cursor-pointer"
+                onClick={resetarDados}
+              >
+                🗑️ Apagar todos os dados
+              </button>
             </div>
           </>
         )}

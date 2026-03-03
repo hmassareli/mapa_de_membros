@@ -238,7 +238,8 @@ export default function MainPage() {
       return;
     }
     try {
-      await api.geocodificar(pinFamiliaId, { latitude: lat, longitude: lng });
+      const result = await api.geocodificar(pinFamiliaId, { latitude: lat, longitude: lng });
+      if (result.erro) throw new Error(result.erro);
       const fam = familias.find((f) => f.id === parseInt(pinFamiliaId));
       showToast(
         `📍 Localização salva para ${fam?.nome_familia || "família"}!`,
@@ -247,7 +248,7 @@ export default function MainPage() {
       disablePinMode();
       refresh();
     } catch (err) {
-      showToast("Erro ao salvar localização", "error");
+      showToast(`Erro ao salvar localização: ${err.message}`, "error");
     }
   }
 
@@ -303,9 +304,9 @@ export default function MainPage() {
 
       {/* Import banner */}
       {importNeeded && (
-        <div className="import-banner">
+        <div className="flex items-center gap-3 px-4 py-2 bg-amber-50 border-b border-amber-200 text-sm text-amber-800">
           <span>⚠️ Nenhum dado importado ainda.</span>
-          <label className="import-banner-btn">
+          <label className="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-medium cursor-pointer hover:bg-blue-700 transition">
             📁 Enviar members.json
             <input
               type="file"
@@ -317,7 +318,7 @@ export default function MainPage() {
             />
           </label>
           <button
-            className="import-banner-close"
+            className="ml-auto text-amber-600 hover:text-amber-800 text-lg leading-none cursor-pointer"
             onClick={() => setImportNeeded(false)}
           >
             ×
@@ -325,7 +326,7 @@ export default function MainPage() {
         </div>
       )}
 
-      <div className="main-content">
+      <div className="flex-1 relative overflow-hidden">
         {viewMode === "map" ? (
           <>
             <MapView
@@ -365,7 +366,7 @@ export default function MainPage() {
 
             {/* Pin mode banner */}
             {pinMode && (
-              <div className="pin-mode-banner">
+              <div className="absolute top-0 left-0 right-0 z-1000 flex items-center gap-3 bg-white/95 backdrop-blur-sm border-b border-amber-300 px-4 py-2 shadow-lg text-sm">
                 <span>
                   📍 Clique no mapa para marcar a localização. Selecione a
                   família abaixo.
@@ -373,6 +374,7 @@ export default function MainPage() {
                 <select
                   value={pinFamiliaId}
                   onChange={(e) => setPinFamiliaId(e.target.value)}
+                  className="px-2 py-1 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">-- Selecione uma família --</option>
                   <optgroup label="Sem coordenadas">
@@ -396,7 +398,7 @@ export default function MainPage() {
                   </optgroup>
                 </select>
                 <button
-                  className="btn btn-danger btn-small"
+                  className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition cursor-pointer"
                   onClick={disablePinMode}
                 >
                   Cancelar
@@ -443,22 +445,23 @@ export default function MainPage() {
 
       {/* Progress bar */}
       {progress && (
-        <div className="geocode-bar">
-          <span>{progressLabel}</span>
-          <div className="geocode-bar-track">
+        <div className="fixed bottom-0 left-0 right-0 z-2000 flex items-center gap-3 px-4 py-2 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg text-sm">
+          <span className="font-medium whitespace-nowrap">{progressLabel}</span>
+          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="geocode-bar-fill"
+              className="h-full rounded-full transition-all duration-300"
               style={{
+                background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)',
                 width: `${progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0}%`,
               }}
             />
           </div>
-          <span className="geocode-bar-text">
+          <span className="text-xs text-gray-500 whitespace-nowrap">
             {progress.current}/{progress.total} (✅{progress.sucesso} ❌
             {progress.falha})
           </span>
           <button
-            className="geocode-bar-close"
+            className="text-gray-400 hover:text-gray-600 text-lg leading-none cursor-pointer"
             onClick={() => {
               geocodeClient.cancelar();
               setGeocodeProgress(null);

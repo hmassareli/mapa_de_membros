@@ -18,9 +18,12 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={showToast}>
       {children}
-      <div className="toast-container">
+      <div className="fixed top-4 right-4 z-3000 flex flex-col gap-2 pointer-events-none">
         {toasts.map((t) => (
-          <div key={t.id} className={`toast toast-${t.type}`}>
+          <div
+            key={t.id}
+            className={`pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-[slideIn_0.3s_ease] ${t.type === "success" ? "bg-green-600 text-white" : t.type === "error" ? "bg-red-600 text-white" : "bg-amber-500 text-white"}`}
+          >
             {t.message}
           </div>
         ))}

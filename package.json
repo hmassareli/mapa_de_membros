@@ -8,9 +8,7 @@
     "dev:api": "node server.js",
     "dev:client": "vite",
     "build": "vite build",
-    "start": "node server.js",
-    "importar": "node importar.js",
-    "geocodificar": "node geocodificar.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -20,17 +18,18 @@
     "better-sqlite3": "^12.6.2",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "jspdf": "^4.2.0",
-    "jspdf-autotable": "^5.0.7",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.1"
+    "react-router-dom": "^7.6.1",
+    "react-to-print": "^3.3.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.2.1",
     "@vitejs/plugin-react": "^4.5.2",
     "concurrently": "^9.1.2",
+    "tailwindcss": "^4.2.1",
     "vite": "^6.3.5"
   }
 }
