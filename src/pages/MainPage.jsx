@@ -423,6 +423,8 @@ export default function MainPage() {
                 onRefresh={refresh}
                 onStartGeocode={iniciarGeocodeBg}
                 onStartRefinamento={iniciarRefinamentoNominatim}
+                geocodeProgress={geocodeProgress}
+                refinamentoProgress={refinamentoProgress}
               />
             )}
 

@@ -154,12 +154,13 @@ app.post("/api/importar", (req, res) => {
       });
     });
 
+    const usuarioId = req.usuario.usuario_id;
     const inserirFamilia = db.prepare(`
-      INSERT OR IGNORE INTO familias (household_uuid, nome_familia, endereco_linha1, endereco_linha2, endereco_linha3, endereco_completo, ala, telefone, email, status, aceita_visitas)
-      VALUES (@householdUuid, @nomeFamilia, @enderecoLinha1, @enderecoLinha2, @enderecoLinha3, @enderecoCompleto, @ala, @telefone, @email, 'nao_contatado', 'nao_contatado')
+      INSERT OR IGNORE INTO familias (household_uuid, usuario_id, nome_familia, endereco_linha1, endereco_linha2, endereco_linha3, endereco_completo, ala, telefone, email, status, aceita_visitas)
+      VALUES (@householdUuid, @usuarioId, @nomeFamilia, @enderecoLinha1, @enderecoLinha2, @enderecoLinha3, @enderecoCompleto, @ala, @telefone, @email, 'nao_contatado', 'nao_contatado')
     `);
     const buscarFamilia = db.prepare(
-      "SELECT id FROM familias WHERE household_uuid = ?",
+      "SELECT id FROM familias WHERE household_uuid = ? AND usuario_id = ?",
     );
     const inserirMembro = db.prepare(`
       INSERT OR IGNORE INTO membros (pessoa_uuid, familia_id, nome_completo, primeiro_nome, sobrenome, sexo, idade, telefone, email, papel_familia, sacerdocio, e_membro, e_adulto, e_jovem_adulto_solteiro, e_adulto_solteiro, data_nascimento)
@@ -173,6 +174,7 @@ app.post("/api/importar", (req, res) => {
       for (const familia of Object.values(familias)) {
         inserirFamilia.run({
           householdUuid: familia.householdUuid,
+          usuarioId: usuarioId,
           nomeFamilia: familia.nomeFamilia,
           enderecoLinha1: familia.enderecoLinha1,
           enderecoLinha2: familia.enderecoLinha2,
@@ -183,7 +185,7 @@ app.post("/api/importar", (req, res) => {
           email: familia.email,
         });
 
-        const row = buscarFamilia.get(familia.householdUuid);
+        const row = buscarFamilia.get(familia.householdUuid, usuarioId);
         if (!row) continue;
         contFamilias++;
 
@@ -268,12 +270,13 @@ app.post("/api/sincronizar", (req, res) => {
       });
     });
 
+    const usuarioId = req.usuario.usuario_id;
     const buscarFamilia = db.prepare(
-      "SELECT * FROM familias WHERE household_uuid = ?",
+      "SELECT * FROM familias WHERE household_uuid = ? AND usuario_id = ?",
     );
     const inserirFamilia = db.prepare(`
-      INSERT INTO familias (household_uuid, nome_familia, endereco_linha1, endereco_linha2, endereco_linha3, endereco_completo, ala, telefone, email, status, aceita_visitas)
-      VALUES (@householdUuid, @nomeFamilia, @enderecoLinha1, @enderecoLinha2, @enderecoLinha3, @enderecoCompleto, @ala, @telefone, @email, 'nao_contatado', 'nao_contatado')
+      INSERT INTO familias (household_uuid, usuario_id, nome_familia, endereco_linha1, endereco_linha2, endereco_linha3, endereco_completo, ala, telefone, email, status, aceita_visitas)
+      VALUES (@householdUuid, @usuarioId, @nomeFamilia, @enderecoLinha1, @enderecoLinha2, @enderecoLinha3, @enderecoCompleto, @ala, @telefone, @email, 'nao_contatado', 'nao_contatado')
     `);
     const atualizarFamilia = db.prepare(`
       UPDATE familias SET 
@@ -281,7 +284,7 @@ app.post("/api/sincronizar", (req, res) => {
         endereco_linha1 = @enderecoLinha1, endereco_linha2 = @enderecoLinha2, endereco_linha3 = @enderecoLinha3,
         endereco_completo = @enderecoCompleto, ala = @ala, telefone = @telefone, email = @email,
         atualizado_em = CURRENT_TIMESTAMP
-      WHERE household_uuid = @householdUuid
+      WHERE household_uuid = @householdUuid AND usuario_id = @usuarioId
     `);
     // Se endereço mudou, resetar geocode para re-geocodificar
     const resetarGeocode = db.prepare(`
@@ -315,7 +318,7 @@ app.post("/api/sincronizar", (req, res) => {
         membrosAtualizados = 0;
 
       for (const familia of Object.values(familias)) {
-        const existente = buscarFamilia.get(familia.householdUuid);
+        const existente = buscarFamilia.get(familia.householdUuid, usuarioId);
 
         if (existente) {
           // Verificar se endereço mudou
@@ -325,6 +328,7 @@ app.post("/api/sincronizar", (req, res) => {
 
           atualizarFamilia.run({
             householdUuid: familia.householdUuid,
+            usuarioId: usuarioId,
             nomeFamilia: familia.nomeFamilia,
             enderecoLinha1: familia.enderecoLinha1,
             enderecoLinha2: familia.enderecoLinha2,
@@ -343,6 +347,7 @@ app.post("/api/sincronizar", (req, res) => {
         } else {
           inserirFamilia.run({
             householdUuid: familia.householdUuid,
+            usuarioId: usuarioId,
             nomeFamilia: familia.nomeFamilia,
             enderecoLinha1: familia.enderecoLinha1,
             enderecoLinha2: familia.enderecoLinha2,
@@ -356,8 +361,8 @@ app.post("/api/sincronizar", (req, res) => {
         }
 
         const row = db
-          .prepare("SELECT id FROM familias WHERE household_uuid = ?")
-          .get(familia.householdUuid);
+          .prepare("SELECT id FROM familias WHERE household_uuid = ? AND usuario_id = ?")
+          .get(familia.householdUuid, usuarioId);
         if (!row) continue;
 
         for (const membro of familia.membros) {
@@ -404,10 +409,11 @@ app.post("/api/sincronizar", (req, res) => {
 
 app.post("/api/resetar", (req, res) => {
   try {
-    db.exec("DELETE FROM visitas");
-    db.exec("DELETE FROM membros");
-    db.exec("DELETE FROM familias");
-    res.json({ sucesso: true, mensagem: "Todos os dados foram apagados." });
+    const usuarioId = req.usuario.usuario_id;
+    db.prepare("DELETE FROM visitas WHERE familia_id IN (SELECT id FROM familias WHERE usuario_id = ?)").run(usuarioId);
+    db.prepare("DELETE FROM membros WHERE familia_id IN (SELECT id FROM familias WHERE usuario_id = ?)").run(usuarioId);
+    db.prepare("DELETE FROM familias WHERE usuario_id = ?").run(usuarioId);
+    res.json({ sucesso: true, mensagem: "Todos os seus dados foram apagados." });
   } catch (err) {
     res.status(500).json({ erro: err.message });
   }
@@ -421,29 +427,28 @@ app.post("/api/regeocodificar", (req, res) => {
   const { modo } = req.body; // 'todos', 'cep', 'falhou'
 
   try {
+    const usuarioId = req.usuario.usuario_id;
     let affected = 0;
     if (modo === "todos") {
       const r = db
         .prepare(
-          "UPDATE familias SET latitude = NULL, longitude = NULL, geocode_fonte = NULL WHERE endereco_completo != ''",
+          "UPDATE familias SET latitude = NULL, longitude = NULL, geocode_fonte = NULL WHERE endereco_completo != '' AND usuario_id = ?",
         )
-        .run();
+        .run(usuarioId);
       affected = r.changes;
     } else if (modo === "cep") {
-      // Resetar só os que ficaram como CEP (não refinados)
       const r = db
         .prepare(
-          "UPDATE familias SET geocode_fonte = 'cep' WHERE geocode_fonte IN ('nominatim', 'nominatim_falhou')",
+          "UPDATE familias SET geocode_fonte = 'cep' WHERE geocode_fonte IN ('nominatim', 'nominatim_falhou') AND usuario_id = ?",
         )
-        .run();
+        .run(usuarioId);
       affected = r.changes;
     } else if (modo === "falhou") {
-      // Resetar só os que falharam no Nominatim para tentar de novo
       const r = db
         .prepare(
-          "UPDATE familias SET geocode_fonte = 'cep' WHERE geocode_fonte = 'nominatim_falhou'",
+          "UPDATE familias SET geocode_fonte = 'cep' WHERE geocode_fonte = 'nominatim_falhou' AND usuario_id = ?",
         )
-        .run();
+        .run(usuarioId);
       affected = r.changes;
     } else {
       return res
@@ -467,6 +472,7 @@ app.post("/api/regeocodificar", (req, res) => {
 
 app.get("/api/geocode-stats", (req, res) => {
   try {
+    const usuarioId = req.usuario.usuario_id;
     const stats = db
       .prepare(
         `
@@ -474,17 +480,18 @@ app.get("/api/geocode-stats", (req, res) => {
         geocode_fonte,
         COUNT(*) as total
       FROM familias 
+      WHERE usuario_id = ?
       GROUP BY geocode_fonte
     `,
       )
-      .all();
+      .all(usuarioId);
 
-    const total = db.prepare("SELECT COUNT(*) as n FROM familias").get().n;
+    const total = db.prepare("SELECT COUNT(*) as n FROM familias WHERE usuario_id = ?").get(usuarioId).n;
     const semEndereco = db
       .prepare(
-        "SELECT COUNT(*) as n FROM familias WHERE endereco_completo = '' OR endereco_completo IS NULL",
+        "SELECT COUNT(*) as n FROM familias WHERE (endereco_completo = '' OR endereco_completo IS NULL) AND usuario_id = ?",
       )
-      .get().n;
+      .get(usuarioId).n;
 
     res.json({ stats, total, semEndereco });
   } catch (err) {
@@ -494,12 +501,13 @@ app.get("/api/geocode-stats", (req, res) => {
 
 // Verificar se tem dados importados
 app.get("/api/tem-dados", (req, res) => {
-  const count = db.prepare("SELECT COUNT(*) as n FROM familias").get().n;
+  const usuarioId = req.usuario.usuario_id;
+  const count = db.prepare("SELECT COUNT(*) as n FROM familias WHERE usuario_id = ?").get(usuarioId).n;
   const semCoord = db
     .prepare(
-      "SELECT COUNT(*) as n FROM familias WHERE latitude IS NULL AND endereco_completo != ?",
+      "SELECT COUNT(*) as n FROM familias WHERE latitude IS NULL AND endereco_completo != ? AND usuario_id = ?",
     )
-    .get("").n;
+    .get("", usuarioId).n;
   res.json({
     temDados: count > 0,
     totalFamilias: count,
@@ -513,12 +521,13 @@ app.get("/api/tem-dados", (req, res) => {
 
 app.get("/api/familias-sem-coordenadas", (req, res) => {
   try {
+    const usuarioId = req.usuario.usuario_id;
     const familias = db
       .prepare(
         `SELECT id, nome_familia, endereco_linha1, endereco_linha2, endereco_linha3, endereco_completo 
-       FROM familias WHERE latitude IS NULL AND endereco_completo != ''`,
+       FROM familias WHERE latitude IS NULL AND endereco_completo != '' AND usuario_id = ?`,
       )
-      .all();
+      .all(usuarioId);
     res.json(familias);
   } catch (err) {
     res.status(500).json({ erro: err.message });
@@ -532,12 +541,13 @@ app.get("/api/familias-sem-coordenadas", (req, res) => {
 
 app.get("/api/familias-pendentes-refinamento", (req, res) => {
   try {
+    const usuarioId = req.usuario.usuario_id;
     const familias = db
       .prepare(
         `SELECT id, nome_familia, endereco_linha1, endereco_linha2, endereco_linha3, endereco_completo 
-       FROM familias WHERE geocode_fonte = 'cep' AND endereco_completo != ''`,
+       FROM familias WHERE geocode_fonte = 'cep' AND endereco_completo != '' AND usuario_id = ?`,
       )
-      .all();
+      .all(usuarioId);
     res.json(familias);
   } catch (err) {
     res.status(500).json({ erro: err.message });
@@ -551,6 +561,7 @@ app.get("/api/familias-pendentes-refinamento", (req, res) => {
 // GET todas as famílias com coordenadas (para o mapa)
 app.get("/api/familias", (req, res) => {
   const { status, aceita_visitas, interesse_retorno, busca } = req.query;
+  const usuarioId = req.usuario.usuario_id;
 
   let sql = `
     SELECT f.*, 
@@ -561,8 +572,8 @@ app.get("/api/familias", (req, res) => {
     LEFT JOIN membros m ON m.familia_id = f.id
   `;
 
-  const conditions = [];
-  const params = [];
+  const conditions = ["f.usuario_id = ?"];
+  const params = [usuarioId];
 
   if (status) {
     conditions.push("f.status = ?");
@@ -581,9 +592,7 @@ app.get("/api/familias", (req, res) => {
     params.push(`%${busca}%`, `%${busca}%`);
   }
 
-  if (conditions.length > 0) {
-    sql += " WHERE " + conditions.join(" AND ");
-  }
+  sql += " WHERE " + conditions.join(" AND ");
 
   sql += " GROUP BY f.id ORDER BY f.nome_familia";
 
@@ -601,15 +610,16 @@ app.get("/api/buscar-membros", (req, res) => {
   if (!q || q.length < 2) return res.json([]);
 
   try {
+    const usuarioId = req.usuario.usuario_id;
     const membros = db
       .prepare(
         `SELECT m.nome_completo, m.primeiro_nome, m.familia_id, f.nome_familia, f.endereco_linha1, f.latitude, f.longitude, f.status
        FROM membros m
        JOIN familias f ON f.id = m.familia_id
-       WHERE m.nome_completo LIKE ? OR m.primeiro_nome LIKE ?
+       WHERE (m.nome_completo LIKE ? OR m.primeiro_nome LIKE ?) AND f.usuario_id = ?
        LIMIT 10`,
       )
-      .all(`%${q}%`, `%${q}%`);
+      .all(`%${q}%`, `%${q}%`, usuarioId);
     res.json(membros);
   } catch (err) {
     res.status(500).json({ erro: err.message });
@@ -619,16 +629,17 @@ app.get("/api/buscar-membros", (req, res) => {
 // GET uma família com membros e visitas
 app.get("/api/familias/:id", (req, res) => {
   try {
+    const usuarioId = req.usuario.usuario_id;
     const familia = db
       .prepare(
         `
       SELECT f.*,
         (SELECT COUNT(*) FROM visitas v WHERE v.familia_id = f.id) as total_visitas,
         (SELECT MAX(v.data_visita) FROM visitas v WHERE v.familia_id = f.id) as ultima_visita
-      FROM familias f WHERE f.id = ?
+      FROM familias f WHERE f.id = ? AND f.usuario_id = ?
     `,
       )
-      .get(req.params.id);
+      .get(req.params.id, usuarioId);
 
     if (!familia) {
       return res.status(404).json({ erro: "Família não encontrada" });
@@ -668,6 +679,12 @@ app.put("/api/familias/:id", (req, res) => {
   } = req.body;
 
   try {
+    const usuarioId = req.usuario.usuario_id;
+
+    // Verificar ownership
+    const existe = db.prepare("SELECT id FROM familias WHERE id = ? AND usuario_id = ?").get(req.params.id, usuarioId);
+    if (!existe) return res.status(404).json({ erro: "Família não encontrada" });
+
     const sets = [];
     const params = [];
 
@@ -766,6 +783,11 @@ app.post("/api/visitas", (req, res) => {
   }
 
   try {
+    // Verificar ownership da família
+    const usuarioId = req.usuario.usuario_id;
+    const familia = db.prepare("SELECT id FROM familias WHERE id = ? AND usuario_id = ?").get(familia_id, usuarioId);
+    if (!familia) return res.status(404).json({ erro: "Família não encontrada" });
+
     const result = db
       .prepare(
         `
@@ -794,6 +816,13 @@ app.post("/api/visitas", (req, res) => {
 // DELETE remover visita
 app.delete("/api/visitas/:id", (req, res) => {
   try {
+    const usuarioId = req.usuario.usuario_id;
+    // Verificar ownership via família
+    const visita = db.prepare(
+      "SELECT v.id FROM visitas v JOIN familias f ON f.id = v.familia_id WHERE v.id = ? AND f.usuario_id = ?"
+    ).get(req.params.id, usuarioId);
+    if (!visita) return res.status(404).json({ erro: "Visita não encontrada" });
+
     db.prepare("DELETE FROM visitas WHERE id = ?").run(req.params.id);
     res.json({ mensagem: "Visita removida" });
   } catch (err) {
@@ -806,6 +835,13 @@ app.put("/api/visitas/:id", (req, res) => {
   const { data_visita, visitante, tipo, resultado, notas } = req.body;
 
   try {
+    const usuarioId = req.usuario.usuario_id;
+    // Verificar ownership via família
+    const visitaOwner = db.prepare(
+      "SELECT v.id FROM visitas v JOIN familias f ON f.id = v.familia_id WHERE v.id = ? AND f.usuario_id = ?"
+    ).get(req.params.id, usuarioId);
+    if (!visitaOwner) return res.status(404).json({ erro: "Visita não encontrada" });
+
     const sets = [];
     const params = [];
 
@@ -854,52 +890,53 @@ app.put("/api/visitas/:id", (req, res) => {
 
 app.get("/api/estatisticas", (req, res) => {
   try {
+    const usuarioId = req.usuario.usuario_id;
     const stats = {
-      totalFamilias: db.prepare("SELECT COUNT(*) as n FROM familias").get().n,
-      totalMembros: db.prepare("SELECT COUNT(*) as n FROM membros").get().n,
-      totalVisitas: db.prepare("SELECT COUNT(*) as n FROM visitas").get().n,
+      totalFamilias: db.prepare("SELECT COUNT(*) as n FROM familias WHERE usuario_id = ?").get(usuarioId).n,
+      totalMembros: db.prepare("SELECT COUNT(*) as n FROM membros m JOIN familias f ON f.id = m.familia_id WHERE f.usuario_id = ?").get(usuarioId).n,
+      totalVisitas: db.prepare("SELECT COUNT(*) as n FROM visitas v JOIN familias f ON f.id = v.familia_id WHERE f.usuario_id = ?").get(usuarioId).n,
       familiasAtivas: db
-        .prepare("SELECT COUNT(*) as n FROM familias WHERE status = 'ativo'")
-        .get().n,
+        .prepare("SELECT COUNT(*) as n FROM familias WHERE status = 'ativo' AND usuario_id = ?")
+        .get(usuarioId).n,
       familiasInativas: db
-        .prepare("SELECT COUNT(*) as n FROM familias WHERE status = 'inativo'")
-        .get().n,
+        .prepare("SELECT COUNT(*) as n FROM familias WHERE status = 'inativo' AND usuario_id = ?")
+        .get(usuarioId).n,
       familiasMudaram: db
-        .prepare("SELECT COUNT(*) as n FROM familias WHERE status = 'mudou'")
-        .get().n,
+        .prepare("SELECT COUNT(*) as n FROM familias WHERE status = 'mudou' AND usuario_id = ?")
+        .get(usuarioId).n,
       familiasDesconhecido: db
         .prepare(
-          "SELECT COUNT(*) as n FROM familias WHERE status = 'desconhecido'",
+          "SELECT COUNT(*) as n FROM familias WHERE status = 'desconhecido' AND usuario_id = ?",
         )
-        .get().n,
+        .get(usuarioId).n,
       familiasNaoContatadas: db
         .prepare(
-          "SELECT COUNT(*) as n FROM familias WHERE status = 'nao_contatado'",
+          "SELECT COUNT(*) as n FROM familias WHERE status = 'nao_contatado' AND usuario_id = ?",
         )
-        .get().n,
+        .get(usuarioId).n,
       aceitamVisitas: db
         .prepare(
-          "SELECT COUNT(*) as n FROM familias WHERE aceita_visitas = 'sim'",
+          "SELECT COUNT(*) as n FROM familias WHERE aceita_visitas = 'sim' AND usuario_id = ?",
         )
-        .get().n,
+        .get(usuarioId).n,
       naoAceitamVisitas: db
         .prepare(
-          "SELECT COUNT(*) as n FROM familias WHERE aceita_visitas = 'nao'",
+          "SELECT COUNT(*) as n FROM familias WHERE aceita_visitas = 'nao' AND usuario_id = ?",
         )
-        .get().n,
+        .get(usuarioId).n,
       naoContatadas: db
         .prepare(
-          "SELECT COUNT(*) as n FROM familias WHERE aceita_visitas = 'nao_contatado'",
+          "SELECT COUNT(*) as n FROM familias WHERE aceita_visitas = 'nao_contatado' AND usuario_id = ?",
         )
-        .get().n,
+        .get(usuarioId).n,
       comCoordenadas: db
         .prepare(
-          "SELECT COUNT(*) as n FROM familias WHERE latitude IS NOT NULL",
+          "SELECT COUNT(*) as n FROM familias WHERE latitude IS NOT NULL AND usuario_id = ?",
         )
-        .get().n,
+        .get(usuarioId).n,
       semCoordenadas: db
-        .prepare("SELECT COUNT(*) as n FROM familias WHERE latitude IS NULL")
-        .get().n,
+        .prepare("SELECT COUNT(*) as n FROM familias WHERE latitude IS NULL AND usuario_id = ?")
+        .get(usuarioId).n,
     };
     res.json(stats);
   } catch (err) {
@@ -921,10 +958,15 @@ app.post("/api/geocodificar/:id", async (req, res) => {
   }
 
   try {
+    const usuarioId = req.usuario.usuario_id;
+    // Verificar ownership
+    const existe = db.prepare("SELECT id FROM familias WHERE id = ? AND usuario_id = ?").get(req.params.id, usuarioId);
+    if (!existe) return res.status(404).json({ erro: "Família não encontrada" });
+
     const fonte = geocode_fonte || "manual";
     db.prepare(
-      "UPDATE familias SET latitude = ?, longitude = ?, geocode_fonte = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?",
-    ).run(latitude, longitude, fonte, req.params.id);
+      "UPDATE familias SET latitude = ?, longitude = ?, geocode_fonte = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ? AND usuario_id = ?",
+    ).run(latitude, longitude, fonte, req.params.id, usuarioId);
     res.json({ mensagem: "Coordenadas atualizadas" });
   } catch (err) {
     res.status(500).json({ erro: err.message });
@@ -937,6 +979,7 @@ app.post("/api/geocodificar/:id", async (req, res) => {
 
 app.get("/api/relatorio", (req, res) => {
   try {
+    const usuarioId = req.usuario.usuario_id;
     const familias = db
       .prepare(
         `
@@ -946,11 +989,12 @@ app.get("/api/relatorio", (req, res) => {
         (SELECT MAX(v.data_visita) FROM visitas v WHERE v.familia_id = f.id) as ultima_visita
       FROM familias f
       LEFT JOIN membros m ON m.familia_id = f.id
+      WHERE f.usuario_id = ?
       GROUP BY f.id
       ORDER BY f.nome_familia
     `,
       )
-      .all();
+      .all(usuarioId);
 
     const getMembros = db.prepare(
       "SELECT * FROM membros WHERE familia_id = ? ORDER BY papel_familia, primeiro_nome",

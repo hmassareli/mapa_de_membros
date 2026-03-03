@@ -77,14 +77,46 @@ function extrairRuaENumero(endereco) {
 }
 
 function extrairCidade(linha3) {
-  if (!linha3) return "São José dos Campos, SP, Brasil";
+  if (!linha3) return null;
   let cidade = linha3.replace(/^[\d-\s]+/, "").trim();
   cidade = cidade.replace(/\s*-\s*/g, ", ");
-  return cidade || "São José dos Campos, SP, Brasil";
+  return cidade || null;
 }
 
 function delay(ms) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+/**
+ * Remove CEP, info de apartamento/bloco e limpa pontuação para Nominatim.
+ */
+function limparEnderecoParaNominatim(endereco) {
+  if (!endereco) return "";
+  let limpo = endereco;
+  // Remove CEP (XXXXX-XXX ou XXXXXXXX)
+  limpo = limpo.replace(/\b\d{5}-?\d{3}\b/g, "");
+  // Remove info de apartamento, bloco, casa, fundos, conjunto, nº
+  limpo = limpo.replace(
+    /\b(bl(oco)?|apto?|ap|casa|fds|fundos|conj(unto)?|nº)\b\.?\s*\d*/gi,
+    "",
+  );
+  // Normaliza separadores
+  limpo = limpo.replace(/\s*-\s*/g, ", ");
+  limpo = limpo.replace(/[,\s]{2,}/g, ", ").trim();
+  limpo = limpo.replace(/^[,\s]+|[,\s]+$/g, "");
+  return limpo;
+}
+
+/**
+ * Expande abreviações comuns de logradouro.
+ */
+function normalizarRua(rua) {
+  if (!rua) return rua;
+  return rua
+    .replace(/^R\b\.?\s*/i, "Rua ")
+    .replace(/^Av\b\.?\s*/i, "Avenida ")
+    .replace(/^Tv\b\.?\s*/i, "Travessa ")
+    .trim();
 }
 
 async function salvarCoordenadas(familiaId, coords, apiBase, fonte) {
@@ -103,54 +135,86 @@ async function salvarCoordenadas(familiaId, coords, apiBase, fonte) {
 
 async function tentarNominatim(f, dadosCep = null) {
   const cidade = extrairCidade(f.endereco_linha3);
+  const cidadeCompleta = cidade
+    ? cidade.includes("Brasil")
+      ? cidade
+      : `${cidade}, Brasil`
+    : null;
   const ruaNumero = extrairRuaENumero(f.endereco_linha1);
   let coords = null;
 
-  coords = await geocodificarEndereco(f.endereco_completo);
-  if (coords) return { coords, estrategia: "Nominatim (completo)" };
+  // 1. Endereço completo limpo (sem CEP, sem apt/bloco)
+  const enderecoLimpo = limparEnderecoParaNominatim(f.endereco_completo);
+  if (enderecoLimpo) {
+    coords = await geocodificarEndereco(enderecoLimpo);
+    if (coords) return { coords, estrategia: "Nominatim (completo)" };
+  }
 
-  if (f.endereco_linha1 && f.endereco_linha3) {
+  // 2. linha1 limpa + cidade
+  if (f.endereco_linha1 && cidadeCompleta) {
     await delay(1100);
-    coords = await geocodificarEndereco(`${f.endereco_linha1}, ${cidade}`);
+    const linha1Limpa = limparEnderecoParaNominatim(f.endereco_linha1);
+    coords = await geocodificarEndereco(
+      `${normalizarRua(linha1Limpa)}, ${cidadeCompleta}`,
+    );
     if (coords) return { coords, estrategia: "Nominatim (rua+cidade)" };
   }
 
-  if (ruaNumero) {
+  // 3. ruaNumero normalizado + cidade
+  if (ruaNumero && cidadeCompleta) {
     await delay(1100);
-    coords = await geocodificarEndereco(`${ruaNumero}, ${cidade}`);
+    const ruaNorm = normalizarRua(ruaNumero);
+    coords = await geocodificarEndereco(`${ruaNorm}, ${cidadeCompleta}`);
     if (coords) return { coords, estrategia: "Nominatim (rua+num)" };
   }
 
-  if (f.endereco_linha1) {
+  // 4. rua + bairro + cidade
+  if (ruaNumero && f.endereco_linha2) {
+    const bairro = f.endereco_linha2.split(/[-,]/)[0].trim();
+    const cidadeParaBairro = cidadeCompleta || "Brasil";
+    if (bairro.length > 2) {
+      await delay(1100);
+      const ruaNorm = normalizarRua(ruaNumero);
+      coords = await geocodificarEndereco(
+        `${ruaNorm}, ${bairro}, ${cidadeParaBairro}`,
+      );
+      if (coords)
+        return { coords, estrategia: "Nominatim (rua+bairro+cidade)" };
+    }
+  }
+
+  // 5. Só nome da rua normalizado + cidade
+  if (f.endereco_linha1 && cidadeCompleta) {
     const somenteRua = f.endereco_linha1.split(/[,\d]/)[0].trim();
     if (somenteRua.length > 3) {
       await delay(1100);
+      const ruaNorm = normalizarRua(somenteRua);
       coords = await geocodificarEndereco(
-        `${somenteRua}, São José dos Campos, SP, Brasil`,
+        `${ruaNorm}, ${cidadeCompleta}`,
       );
       if (coords) return { coords, estrategia: "Nominatim (só rua)" };
     }
   }
 
-  // Fallback: usar nome da rua retornado pela BrasilAPI (sem alterar o banco)
+  // 6. Rua via BrasilAPI (CEP)
   if (dadosCep?.street) {
     const cidadeCep =
       dadosCep.city && dadosCep.state
         ? `${dadosCep.city}, ${dadosCep.state}, Brasil`
-        : cidade;
+        : cidadeCompleta;
     await delay(1100);
     coords = await geocodificarEndereco(`${dadosCep.street}, ${cidadeCep}`);
     if (coords) return { coords, estrategia: "Nominatim (rua via CEP)" };
   }
 
-  // Fallback: bairro + cidade (pega centro do bairro)
+  // 7. Bairro + cidade
   const bairroTexto =
     dadosCep?.neighborhood ||
     (f.endereco_linha2 ? f.endereco_linha2.split(/[-,]/)[0].trim() : null);
   if (bairroTexto && bairroTexto.length > 2) {
     await delay(1100);
     coords = await geocodificarEndereco(
-      `${bairroTexto}, ${dadosCep?.city || cidade}`,
+      `${bairroTexto}, ${dadosCep?.city || cidadeCompleta || "Brasil"}`,
     );
     if (coords) return { coords, estrategia: "Nominatim (bairro)" };
   }
@@ -183,7 +247,8 @@ async function iniciar(familias, apiBase = "") {
     if (state.cancelar) break;
     const lote = familias.slice(i, i + BATCH_SIZE);
     const promessas = lote.map(async (f) => {
-      const cep = extrairCep(f.endereco_linha3);
+      const cep =
+        extrairCep(f.endereco_linha3) || extrairCep(f.endereco_completo);
       if (!cep) return { familia: f, coords: null, dadosCep: null };
       const resultado = await buscarCep(cep);
       return {
@@ -265,7 +330,8 @@ async function iniciarSomenteCep(familias, apiBase = "") {
     if (state.cancelar) break;
     const lote = familias.slice(i, i + BATCH_SIZE);
     const promessas = lote.map(async (f) => {
-      const cep = extrairCep(f.endereco_linha3);
+      const cep =
+        extrairCep(f.endereco_linha3) || extrairCep(f.endereco_completo);
       if (!cep) return { familia: f, coords: null };
       const resultado = await buscarCep(cep);
       return { familia: f, coords: resultado?.coords || null };
@@ -320,7 +386,16 @@ async function refinar(familias, apiBase = "") {
     state.current = i + 1;
     state.ultimaFamilia = f.nome_familia;
 
-    const result = await tentarNominatim(f);
+    // Buscar dados do CEP para usar como fallback no Nominatim
+    const cep =
+      extrairCep(f.endereco_linha3) || extrairCep(f.endereco_completo);
+    let dadosCep = null;
+    if (cep) {
+      const resultado = await buscarCep(cep);
+      dadosCep = resultado?.endereco || null;
+    }
+
+    const result = await tentarNominatim(f, dadosCep);
 
     if (result.coords) {
       await salvarCoordenadas(f.id, result.coords, apiBase, "nominatim");
@@ -378,7 +453,9 @@ function isRunning() {
  */
 async function geocodeSingle(familia, apiBase = "") {
   // 1. Tentar CEP
-  const cep = extrairCep(familia.endereco_linha3);
+  const cep =
+    extrairCep(familia.endereco_linha3) ||
+    extrairCep(familia.endereco_completo);
   let dadosCep = null;
   if (cep) {
     const resultado = await buscarCep(cep);

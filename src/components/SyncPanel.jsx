@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useToast } from "../hooks/useToast";
 import { api } from "../lib/api";
 
@@ -7,18 +7,42 @@ export default function SyncPanel({
   onRefresh,
   onStartGeocode,
   onStartRefinamento,
+  geocodeProgress,
+  refinamentoProgress,
 }) {
   const showToast = useToast();
   const [loading, setLoading] = useState(true);
   const [geocodeInfo, setGeocodeInfo] = useState(null);
   const [syncResult, setSyncResult] = useState(null);
+  const reloadTimer = useRef(null);
 
   useEffect(() => {
     loadData();
   }, []);
 
-  async function loadData() {
-    setLoading(true);
+  // Recarregar stats reativamente durante geocodificação/refinamento
+  const progress = geocodeProgress || refinamentoProgress;
+  useEffect(() => {
+    if (!progress) return;
+    // Debounce: recarrega no máximo a cada 2s
+    clearTimeout(reloadTimer.current);
+    reloadTimer.current = setTimeout(() => {
+      loadData(true);
+    }, 2000);
+    return () => clearTimeout(reloadTimer.current);
+  }, [progress?.current, progress?.sucesso, progress?.falha]);
+
+  // Recarregar quando geocodificação termina (progress vira null)
+  const prevProgress = useRef(progress);
+  useEffect(() => {
+    if (prevProgress.current && !progress) {
+      loadData();
+    }
+    prevProgress.current = progress;
+  }, [progress]);
+
+  async function loadData(silent = false) {
+    if (!silent) setLoading(true);
     try {
       const [dados, geocode] = await Promise.all([
         api.temDados(),
@@ -39,9 +63,9 @@ export default function SyncPanel({
         totalFamilias: dados.totalFamilias,
       });
     } catch (err) {
-      showToast("Erro ao carregar dados", "error");
+      if (!silent) showToast("Erro ao carregar dados", "error");
     }
-    setLoading(false);
+    if (!silent) setLoading(false);
   }
 
   async function sincronizarJSON(e) {
