@@ -330,7 +330,7 @@ export default function MainPage() {
         </div>
       )}
 
-      <div className="flex-1 relative overflow-hidden">
+      <div className={`flex-1 relative ${viewMode === "map" ? "overflow-hidden" : "overflow-auto"}`}>
         {viewMode === "map" ? (
           <>
             <MapView
