@@ -1,10 +1,5 @@
 import { forwardRef } from "react";
-import {
-  formatDate,
-  ROLE_LABELS,
-  STATUS_COLORS,
-  STATUS_LABELS,
-} from "../lib/utils";
+import { formatDate, ROLE_LABELS, STATUS_COLORS } from "../lib/utils";
 
 const SECTION_ORDER = [
   { key: "ativo", label: "Famílias Ativas" },
