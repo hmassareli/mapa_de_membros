@@ -25,7 +25,14 @@ function isRecentlyVisited(familia) {
 }
 
 const MapView = forwardRef(function MapView(
-  { familias, onMarkerClick, pinMode, onMapClickPin, followingUser, onFollowChange },
+  {
+    familias,
+    onMarkerClick,
+    pinMode,
+    onMapClickPin,
+    followingUser,
+    onFollowChange,
+  },
   ref,
 ) {
   const containerRef = useRef(null);
