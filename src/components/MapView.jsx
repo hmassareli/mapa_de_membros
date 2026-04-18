@@ -25,7 +25,7 @@ function isRecentlyVisited(familia) {
 }
 
 const MapView = forwardRef(function MapView(
-  { familias, onMarkerClick, pinMode, onMapClickPin },
+  { familias, onMarkerClick, pinMode, onMapClickPin, followingUser, onFollowChange },
   ref,
 ) {
   const containerRef = useRef(null);
@@ -34,10 +34,18 @@ const MapView = forwardRef(function MapView(
   const pinModeRef = useRef(pinMode);
   const onMapClickPinRef = useRef(onMapClickPin);
   const tempMarkerRef = useRef(null);
+  const userMarkerRef = useRef(null);
+  const userCircleRef = useRef(null);
+  const watchIdRef = useRef(null);
+  const userPositionRef = useRef(null);
+  const followingRef = useRef(followingUser);
+  const onFollowChangeRef = useRef(onFollowChange);
 
   // Keep refs in sync
   pinModeRef.current = pinMode;
   onMapClickPinRef.current = onMapClickPin;
+  followingRef.current = followingUser;
+  onFollowChangeRef.current = onFollowChange;
 
   useImperativeHandle(ref, () => ({
     flyTo: (latlng, zoom, options) => {
@@ -99,7 +107,62 @@ const MapView = forwardRef(function MapView(
     mapInstance.current = map;
     markersLayerRef.current = markers;
 
+    // Geolocation tracking
+    if (navigator.geolocation) {
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude, accuracy } = pos.coords;
+          const latlng = [latitude, longitude];
+          userPositionRef.current = latlng;
+
+          if (!userMarkerRef.current) {
+            userMarkerRef.current = L.marker(latlng, {
+              icon: L.divIcon({
+                className: "",
+                html: '<div class="user-location-dot"><div class="user-location-pulse"></div></div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10],
+              }),
+              zIndexOffset: 10000,
+              interactive: false,
+            }).addTo(map);
+
+            userCircleRef.current = L.circle(latlng, {
+              radius: Math.min(accuracy, 200),
+              color: "#4285f4",
+              fillColor: "#4285f4",
+              fillOpacity: 0.08,
+              weight: 1,
+              opacity: 0.3,
+            }).addTo(map);
+          } else {
+            userMarkerRef.current.setLatLng(latlng);
+            userCircleRef.current.setLatLng(latlng);
+            userCircleRef.current.setRadius(Math.min(accuracy, 200));
+          }
+
+          if (followingRef.current) {
+            map.setView(latlng, map.getZoom(), { animate: true });
+          }
+        },
+        (err) => {
+          console.warn("Geolocation error:", err.message);
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
+      );
+
+      map.on("dragstart", () => {
+        if (followingRef.current) {
+          onFollowChangeRef.current?.(false);
+        }
+      });
+    }
+
     return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
       map.remove();
       mapInstance.current = null;
     };
@@ -119,6 +182,16 @@ const MapView = forwardRef(function MapView(
       }
     }
   }, [pinMode]);
+
+  // Center on user when following starts
+  useEffect(() => {
+    if (followingUser && userPositionRef.current && mapInstance.current) {
+      const zoom = Math.max(mapInstance.current.getZoom(), 16);
+      mapInstance.current.flyTo(userPositionRef.current, zoom, {
+        duration: 0.5,
+      });
+    }
+  }, [followingUser]);
 
   // Update markers
   useEffect(() => {

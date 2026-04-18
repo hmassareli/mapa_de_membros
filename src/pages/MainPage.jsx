@@ -28,6 +28,7 @@ export default function MainPage() {
   const [pinMode, setPinMode] = useState(false);
   const [pinFamiliaId, setPinFamiliaId] = useState("");
   const [importNeeded, setImportNeeded] = useState(false);
+  const [followingUser, setFollowingUser] = useState(false);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -338,12 +339,16 @@ export default function MainPage() {
               onMarkerClick={(id) => loadFamiliaDetalhe(id)}
               pinMode={pinMode}
               onMapClickPin={handleMapClickPin}
+              followingUser={followingUser}
+              onFollowChange={setFollowingUser}
             />
 
             <Legend />
 
             <FabGroup
               pinMode={pinMode}
+              followingUser={followingUser}
+              onCenterUser={() => setFollowingUser(true)}
               onTogglePinMode={() => {
                 if (pinMode) disablePinMode();
                 else {

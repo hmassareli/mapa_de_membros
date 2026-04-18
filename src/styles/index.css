@@ -101,6 +101,28 @@
   .marker-recent {
     animation: pulse 2s infinite;
   }
+
+  .user-location-dot {
+    width: 16px;
+    height: 16px;
+    background: #4285f4;
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    position: relative;
+  }
+
+  .user-location-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(66, 133, 244, 0.25);
+    animation: user-pulse 2s ease-out infinite;
+  }
 }
 
 /* ================================
@@ -115,6 +137,17 @@
   }
   100% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes user-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
   }
 }
 
