@@ -285,12 +285,16 @@ export default function Toolbar({
         onClick={() => setFiltersOpen(!filtersOpen)}
       >
         🔽 Filtros
-        {(filters.status || filters.aceita_visitas || filters.interesse_retorno) && (
+        {(filters.status ||
+          filters.aceita_visitas ||
+          filters.interesse_retorno) && (
           <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
         )}
       </button>
 
-      <div className={`${filtersOpen ? "flex" : "hidden"} md:flex items-center gap-2 flex-wrap w-full md:w-auto`}>
+      <div
+        className={`${filtersOpen ? "flex" : "hidden"} md:flex items-center gap-2 flex-wrap w-full md:w-auto`}
+      >
         <select
           value={filters.status}
           onChange={(e) =>
