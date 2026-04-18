@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 export default function Legend() {
-  const [minimized, setMinimized] = useState(false);
+  const [minimized, setMinimized] = useState(() => window.innerWidth <= 768);
 
   return (
     <div

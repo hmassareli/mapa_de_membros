@@ -20,6 +20,7 @@ export default function Toolbar({
   const [query, setQuery] = useState("");
   const [dropdownItems, setDropdownItems] = useState(null);
   const [activeIdx, setActiveIdx] = useState(-1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const timeoutRef = useRef();
   const dropdownRef = useRef();
 
@@ -138,12 +139,12 @@ export default function Toolbar({
 
   return (
     <div
-      className="flex flex-wrap items-center gap-3 px-4 py-2 border-b border-primary z-10"
+      className="flex flex-wrap items-center gap-2 md:gap-3 px-3 py-1.5 md:px-4 md:py-2 border-b border-primary z-10"
       style={{
         background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)",
       }}
     >
-      <div className="relative flex-1 min-w-50" ref={dropdownRef}>
+      <div className="relative flex-1 min-w-0 md:min-w-50" ref={dropdownRef}>
         <svg
           className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
           viewBox="0 0 24 24"
@@ -279,7 +280,17 @@ export default function Toolbar({
         )}
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
+      <button
+        className="md:hidden px-2 py-1.5 border border-white/20 rounded-lg text-xs text-white hover:bg-white/15 transition cursor-pointer flex items-center gap-1"
+        onClick={() => setFiltersOpen(!filtersOpen)}
+      >
+        🔽 Filtros
+        {(filters.status || filters.aceita_visitas || filters.interesse_retorno) && (
+          <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+        )}
+      </button>
+
+      <div className={`${filtersOpen ? "flex" : "hidden"} md:flex items-center gap-2 flex-wrap w-full md:w-auto`}>
         <select
           value={filters.status}
           onChange={(e) =>
